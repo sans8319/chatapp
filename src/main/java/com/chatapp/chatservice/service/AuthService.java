@@ -37,6 +37,8 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
+        user.setOnline(true);
+        userRepository.save(user);
 
         String token = jwtProvider.generateToken(new UsernamePasswordAuthenticationToken(user.getUsername(), null));
         return new AuthResponse(token, user.getUsername());

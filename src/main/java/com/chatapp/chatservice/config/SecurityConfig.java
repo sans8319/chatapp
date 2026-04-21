@@ -26,6 +26,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // API ke liye CSRF disable zaroori hai
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT is stateless
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/users/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()   // Signup/Login allowed for everyone
                 .requestMatchers("/ws-chat/**").permitAll() // WebSocket handshake allowed
                 .anyRequest().authenticated()              // Baki sab locked
