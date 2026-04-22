@@ -26,5 +26,9 @@ public class Message {
     private String content;
 
     private LocalDateTime timestamp;
-    private boolean seen;
+    
+    private boolean seen; // Aapke paas ye pehle se hai
+    
+    // NAYA: Delivered track karne ke liye
+    private boolean delivered = false; 
 }
