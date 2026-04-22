@@ -1,9 +1,8 @@
-Folder PATH listing
-Volume serial number is 3A4A-06E9
-C:.
+Folder PATH listing for volume Data
+Volume serial number is 6441-1E0D
+D:.
 +---.mvn
 |   \---wrapper
-+---.vscode
 +---src
 |   +---main
 |   |   +---java
@@ -18,8 +17,6 @@ C:.
 |   |   |               +---security
 |   |   |               \---service
 |   |   \---resources
-|   |       +---static
-|   |       \---templates
 |   \---test
 |       \---java
 |           \---com
