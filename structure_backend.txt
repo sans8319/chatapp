@@ -1,0 +1,53 @@
+Folder PATH listing
+Volume serial number is 3A4A-06E9
+C:.
++---.mvn
+|   \---wrapper
++---.vscode
++---src
+|   +---main
+|   |   +---java
+|   |   |   \---com
+|   |   |       \---chatapp
+|   |   |           \---chatservice
+|   |   |               +---config
+|   |   |               +---controller
+|   |   |               +---dto
+|   |   |               +---entity
+|   |   |               +---repository
+|   |   |               +---security
+|   |   |               \---service
+|   |   \---resources
+|   |       +---static
+|   |       \---templates
+|   \---test
+|       \---java
+|           \---com
+|               \---chatapp
+|                   \---chatservice
+\---target
+    +---classes
+    |   \---com
+    |       \---chatapp
+    |           \---chatservice
+    |               +---config
+    |               +---controller
+    |               +---dto
+    |               +---entity
+    |               +---repository
+    |               +---security
+    |               \---service
+    +---generated-sources
+    |   \---annotations
+    +---generated-test-sources
+    |   \---test-annotations
+    +---maven-status
+    |   \---maven-compiler-plugin
+    |       +---compile
+    |       |   \---default-compile
+    |       \---testCompile
+    |           \---default-testCompile
+    \---test-classes
+        \---com
+            \---chatapp
+                \---chatservice
