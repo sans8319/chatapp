@@ -6,6 +6,7 @@ import com.chatapp.chatservice.entity.User;
 import com.chatapp.chatservice.repository.ChatGroupRepository;
 import com.chatapp.chatservice.repository.GroupMemberRepository;
 import com.chatapp.chatservice.repository.UserRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,27 +20,30 @@ public class GroupService {
     private final ChatGroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
+    
+    // NAYA: Pings aur System message ke liye
+    private final SimpMessagingTemplate messagingTemplate;
+    private final GroupMessageService groupMessageService;
 
-    public GroupService(ChatGroupRepository groupRepository, GroupMemberRepository groupMemberRepository, UserRepository userRepository) {
+    public GroupService(ChatGroupRepository groupRepository, GroupMemberRepository groupMemberRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, GroupMessageService groupMessageService) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.groupMessageService = groupMessageService;
     }
 
     @Transactional
     public ChatGroup createGroup(String name, List<Long> memberIds, Long creatorId) {
-        // 1. Naya Group Banao
         ChatGroup group = new ChatGroup();
         group.setName(name);
         group.setCreatedBy(creatorId);
         ChatGroup savedGroup = groupRepository.save(group);
 
-        // 2. Creator ko automatically member banao
         if (!memberIds.contains(creatorId)) {
             memberIds.add(creatorId);
         }
 
-        // 3. Saare selected users ko group mein map karo
         for (Long userId : memberIds) {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
@@ -49,9 +53,30 @@ public class GroupService {
                 groupMemberRepository.save(member);
             }
         }
+
+        // 1. SYSTEM MESSAGE: Naya group bante hi ek default message daalo ("You were added...")
+        Map<String, Object> sysPayload = new HashMap<>();
+        sysPayload.put("content", "You were added to this group.");
+        sysPayload.put("senderId", creatorId);
+        sysPayload.put("senderName", "System");
+        // Yeh DB me save hoga aur frontend ko websocket par chala jayega
+        groupMessageService.saveAndBroadcastMessage(savedGroup.getId(), sysPayload);
+
+        // 2. PERSONAL NOTIFICATIONS: Saare members ko ping karo ki sidebar update karein
+        Map<String, String> notification = new HashMap<>();
+        notification.put("type", "NEW_GROUP");
+        for (Long userId : memberIds) {
+            try {
+                messagingTemplate.convertAndSend("/topic/user/" + userId, notification);
+            } catch (Exception e) {
+                System.err.println("Notification ping failed for user " + userId + ": " + e.getMessage());
+            }
+        }
+
         return savedGroup;
     }
 
+    // --- AAPKA ORIGINAL FUNCTION (100% SAFE) ---
     // Frontend ko data bhejne ke liye method
     public List<Map<String, Object>> getUserGroups(Long userId) {
         List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
