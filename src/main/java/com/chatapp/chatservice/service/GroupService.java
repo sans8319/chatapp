@@ -21,7 +21,6 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
     
-    // NAYA: Pings aur System message ke liye
     private final SimpMessagingTemplate messagingTemplate;
     private final GroupMessageService groupMessageService;
 
@@ -54,15 +53,17 @@ public class GroupService {
             }
         }
 
-        // 1. SYSTEM MESSAGE: Naya group bante hi ek default message daalo ("You were added...")
+        // --- YAHAN FIX KIYA HAI ---
+        // 1. SYSTEM MESSAGE: Naya group bante hi ek default message daalo
         Map<String, Object> sysPayload = new HashMap<>();
-        sysPayload.put("content", "You were added to this group.");
+        sysPayload.put("content", "###GROUP_CREATED###"); 
         sysPayload.put("senderId", creatorId);
         sysPayload.put("senderName", "System");
-        // Yeh DB me save hoga aur frontend ko websocket par chala jayega
+        sysPayload.put("roomId", "GROUP_" + savedGroup.getId()); // NAYA: Yeh missing tha! Iske bina frontend confuse ho raha tha.
+        
         groupMessageService.saveAndBroadcastMessage(savedGroup.getId(), sysPayload);
 
-        // 2. PERSONAL NOTIFICATIONS: Saare members ko ping karo ki sidebar update karein
+        // 2. PERSONAL NOTIFICATIONS
         Map<String, String> notification = new HashMap<>();
         notification.put("type", "NEW_GROUP");
         for (Long userId : memberIds) {
@@ -76,16 +77,14 @@ public class GroupService {
         return savedGroup;
     }
 
-    // --- AAPKA ORIGINAL FUNCTION (100% SAFE) ---
-    // Frontend ko data bhejne ke liye method
     public List<Map<String, Object>> getUserGroups(Long userId) {
         List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
         
         return memberships.stream().map(membership -> {
             Map<String, Object> groupData = new HashMap<>();
             groupData.put("id", membership.getChatGroup().getId());
-            groupData.put("username", membership.getChatGroup().getName()); // frontend variable se match karne ke liye
-            groupData.put("isGroup", true); // Frontend ko batane ke liye ki ye group hai
+            groupData.put("username", membership.getChatGroup().getName()); 
+            groupData.put("isGroup", true); 
             groupData.put("lastMessage", "Tap to start chatting...");
             groupData.put("unreadCount", 0);
             return groupData;
