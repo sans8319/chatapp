@@ -1,5 +1,6 @@
 package com.chatapp.chatservice.service;
 
+import com.chatapp.chatservice.dto.GroupCreateRequest; // NAYA IMPORT
 import com.chatapp.chatservice.entity.ChatGroup;
 import com.chatapp.chatservice.entity.GroupMember;
 import com.chatapp.chatservice.entity.User;
@@ -33,12 +34,20 @@ public class GroupService {
     }
 
     @Transactional
-    public ChatGroup createGroup(String name, List<Long> memberIds, Long creatorId) {
+    public ChatGroup createGroup(GroupCreateRequest request, Long creatorId) { // NAYA: Ab poora request object aayega
         ChatGroup group = new ChatGroup();
-        group.setName(name);
+        group.setName(request.getName());
+        
+        // --- NAYE FIELDS DB MEIN SAVE HO RAHE HAIN ---
+        group.setDescription(request.getDescription());
+        group.setPermissions(request.getPermissions());
+        group.setProfilePicture(request.getProfilePicture());
+        // ---------------------------------------------
+
         group.setCreatedBy(creatorId);
         ChatGroup savedGroup = groupRepository.save(group);
 
+        List<Long> memberIds = request.getMemberIds();
         if (!memberIds.contains(creatorId)) {
             memberIds.add(creatorId);
         }
@@ -53,17 +62,16 @@ public class GroupService {
             }
         }
 
-        // --- YAHAN FIX KIYA HAI ---
-        // 1. SYSTEM MESSAGE: Naya group bante hi ek default message daalo
+        // 1. SYSTEM MESSAGE (Purana Logic Safe Hai)
         Map<String, Object> sysPayload = new HashMap<>();
         sysPayload.put("content", "###GROUP_CREATED###"); 
         sysPayload.put("senderId", creatorId);
         sysPayload.put("senderName", "System");
-        sysPayload.put("roomId", "GROUP_" + savedGroup.getId()); // NAYA: Yeh missing tha! Iske bina frontend confuse ho raha tha.
+        sysPayload.put("roomId", "GROUP_" + savedGroup.getId()); 
         
         groupMessageService.saveAndBroadcastMessage(savedGroup.getId(), sysPayload);
 
-        // 2. PERSONAL NOTIFICATIONS
+        // 2. PERSONAL NOTIFICATIONS (Purana Logic Safe Hai)
         Map<String, String> notification = new HashMap<>();
         notification.put("type", "NEW_GROUP");
         for (Long userId : memberIds) {
@@ -84,6 +92,13 @@ public class GroupService {
             Map<String, Object> groupData = new HashMap<>();
             groupData.put("id", membership.getChatGroup().getId());
             groupData.put("username", membership.getChatGroup().getName()); 
+            
+            // --- NAYE FIELDS FRONTEND KO BHEJNE KE LIYE ---
+            groupData.put("description", membership.getChatGroup().getDescription());
+            groupData.put("permissions", membership.getChatGroup().getPermissions());
+            groupData.put("profilePicture", membership.getChatGroup().getProfilePicture());
+            // ----------------------------------------------
+            
             groupData.put("isGroup", true); 
             groupData.put("lastMessage", "Tap to start chatting...");
             groupData.put("unreadCount", 0);

@@ -48,7 +48,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // NAYA MASTER KEY: OPTIONS requests ko bina token ke pass hone do
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
-                
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/users/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/ws-chat/**").permitAll() 

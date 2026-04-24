@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/groups")
-@CrossOrigin(origins = "http://localhost:4200") // CORS apne hisaab se set karein
+@CrossOrigin(origins = "http://localhost:4200") 
 public class GroupController {
 
     private final GroupService groupService;
@@ -20,17 +20,16 @@ public class GroupController {
         this.groupService = groupService;
     }
 
-    // Naya group banane ka endpoint
     @PostMapping("/create")
     public ResponseEntity<ChatGroup> createGroup(
             @RequestBody GroupCreateRequest request,
-            @RequestParam Long creatorId) { // Ideal case me yeh JWT token se nikalte hain
+            @RequestParam Long creatorId) { 
         
-        ChatGroup group = groupService.createGroup(request.getName(), request.getMemberIds(), creatorId);
+        // NAYA: Ab hum poora 'request' bhej rahe hain taaki saara data service tak jaye
+        ChatGroup group = groupService.createGroup(request, creatorId);
         return ResponseEntity.ok(group);
     }
 
-    // User ke saare groups fetch karne ka endpoint
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Map<String, Object>>> getUserGroups(@PathVariable Long userId) {
         List<Map<String, Object>> groups = groupService.getUserGroups(userId);

@@ -5,14 +5,14 @@ spring:
   application:
     name: chat-service
   
-  # Database Configuration
+  # Database Configuration (Intact)
   datasource:
     url: jdbc:postgresql://localhost:5432/chatapp
     username: admin
     password: password
     driver-class-name: org.postgresql.Driver
 
-  # Hibernate/JPA Settings
+  # Hibernate/JPA Settings (Intact)
   jpa:
     hibernate:
       ddl-auto: update
@@ -22,11 +22,26 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Redis Configuration
+  # Redis Configuration (Intact)
   data:
     redis:
       host: localhost
       port: 6379
+
+  # --- NAYA: Multi-part configuration (File Upload limits) ---
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+# --- NAYA: Professional File Storage Properties ---
+file:
+  # Folder jahan group images physically save hongi
+  upload-dir: ./uploads/group-avatars
+
+# Frontend ke liye backend ka dynamic URL
+backend:
+  base-url: http://localhost:8080
 
 logging:
   level:
