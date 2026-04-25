@@ -2,7 +2,6 @@ package com.chatapp.chatservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -25,4 +24,22 @@ public class User {
 
     private String profilePicture;
     private boolean online;
+
+    // =====================================
+    // NAYE PROFILE FIELDS
+    // =====================================
+    @Column(name = "about")
+    private String about;
+
+    @Column(name = "department")
+    private String department;
+
+    @Column(name = "designation")
+    private String designation;
+
+    @Column(name = "work_location")
+    private String location;
+
+    @Column(name = "phone_number")
+    private String phone;
 }
