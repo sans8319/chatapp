@@ -39,6 +39,9 @@ public class UserController {
             user.setLocation(profileData.getLocation());
             user.setPhone(profileData.getPhone());
             user.setProfilePicture(profileData.getProfilePicture());
+            user.setStatusState(profileData.getStatusState());
+            user.setCustomStatusText(profileData.getCustomStatusText());
+            user.setCustomStatusColor(profileData.getCustomStatusColor());
             userRepository.save(user);
             return ResponseEntity.ok(user);
         } else {

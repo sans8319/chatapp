@@ -42,4 +42,13 @@ public class User {
 
     @Column(name = "phone_number")
     private String phone;
+
+    @Column(name = "status_state")
+    private String statusState;
+
+    @Column(name = "custom_status_text")
+    private String customStatusText;
+
+    @Column(name = "custom_status_color")
+    private String customStatusColor;
 }

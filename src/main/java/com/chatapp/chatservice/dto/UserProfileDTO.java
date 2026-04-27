@@ -14,4 +14,7 @@ public class UserProfileDTO {
     private String location;
     private String phone;
     private String profilePicture;
+    private String statusState;
+    private String customStatusText;
+    private String customStatusColor;
 }
