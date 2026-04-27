@@ -42,6 +42,7 @@ public class UserController {
             user.setStatusState(profileData.getStatusState());
             user.setCustomStatusText(profileData.getCustomStatusText());
             user.setCustomStatusColor(profileData.getCustomStatusColor());
+            user.setCountryCode(profileData.getCountryCode());
             userRepository.save(user);
             return ResponseEntity.ok(user);
         } else {

@@ -51,4 +51,7 @@ public class User {
 
     @Column(name = "custom_status_color")
     private String customStatusColor;
+
+    @Column(name = "country_code")
+    private String countryCode;
 }

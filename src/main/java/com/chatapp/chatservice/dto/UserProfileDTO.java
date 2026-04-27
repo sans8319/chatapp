@@ -17,4 +17,5 @@ public class UserProfileDTO {
     private String statusState;
     private String customStatusText;
     private String customStatusColor;
+    private String countryCode;
 }
