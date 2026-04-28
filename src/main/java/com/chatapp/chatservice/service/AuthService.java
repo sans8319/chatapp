@@ -26,7 +26,9 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .online(false)
+                .online(false) // Signup ke waqt offline
+                .statusState("Online")
+                .customStatusColor("#22c55e")
                 .build();
         userRepository.save(user);
 
@@ -50,6 +52,12 @@ public class AuthService {
         }
         user.setOnline(true);
         userRepository.save(user);
+
+        try {
+            messagingTemplate.convertAndSend("/topic/public/updates", Map.of("type", "PROFILE_UPDATED"));
+        } catch (Exception e) {
+            System.err.println("Notification failed: " + e.getMessage());
+        }
 
         String token = jwtProvider.generateToken(new UsernamePasswordAuthenticationToken(user.getUsername(), null));
         return new AuthResponse(token, user.getUsername(), user.getId());
