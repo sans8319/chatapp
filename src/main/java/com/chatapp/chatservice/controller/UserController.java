@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.Map;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -48,6 +51,13 @@ public class UserController {
             user.setCustomStatusColor(profileData.getCustomStatusColor());
             user.setCountryCode(profileData.getCountryCode());
             userRepository.save(user);
+
+            try {
+                messagingTemplate.convertAndSend("/topic/public/updates", Map.of("type", "PROFILE_UPDATED"));
+            } catch (Exception e) {
+                System.err.println("Notification failed: " + e.getMessage());
+            }
+            
             return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
