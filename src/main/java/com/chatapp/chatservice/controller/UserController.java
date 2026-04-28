@@ -101,4 +101,36 @@ public class UserController {
             
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found"));
     }
+
+    // =====================================
+    // NAYA: DELETE ACCOUNT (SOFT DELETE LOGIC)
+    // =====================================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAccount(@PathVariable Long id) {
+        return userRepository.findById(id).map(user -> {
+            
+            // 1. Username ke aage hidden marker lagayein
+            if (!user.getUsername().contains("_DELETED_")) {
+                user.setUsername(user.getUsername() + "_DELETED_" + id);
+            }
+
+            // 2. Sensitive data clear karein
+            user.setEmail("deleted_" + id + "@workchat.com");
+            user.setPassword("EXPIRED_" + System.currentTimeMillis());
+            user.setPhone(null);
+            user.setProfilePicture(null);
+            
+            // 3. Status permanently Offline/Grey karein
+            user.setOnline(false);
+            user.setStatusState("Offline");
+            user.setCustomStatusColor("#94a3b8"); // Grey offline color
+            user.setCustomStatusText("Account Deleted");
+            user.setAbout("This account is no longer active.");
+            user.setDesignation("Former Member");
+
+            userRepository.save(user);
+            return ResponseEntity.ok("Account deleted successfully.");
+            
+        }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found"));
+    }
 }
