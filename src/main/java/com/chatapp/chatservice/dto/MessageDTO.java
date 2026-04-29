@@ -17,4 +17,12 @@ public class MessageDTO {
     // Status Ticks ke liye
     private boolean delivered;
     private boolean seen;
+
+    // =====================================
+    // NAYA: Media Sharing Fields
+    // =====================================
+    private String fileUrl;
+    private String fileName;
+    private String fileType;
+    private Long fileSize;
 }

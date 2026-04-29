@@ -73,6 +73,10 @@ public class ChatController {
                 .timestamp(savedMessage.getTimestamp())
                 .delivered(savedMessage.isDelivered())
                 .seen(savedMessage.isSeen())
+                .fileUrl(savedMessage.getFileUrl())
+                .fileName(savedMessage.getFileName())
+                .fileType(savedMessage.getFileType())
+                .fileSize(savedMessage.getFileSize())
                 .build();
 
         messagingTemplate.convertAndSend("/topic/room/" + roomId, dto);

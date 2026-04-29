@@ -30,5 +30,10 @@ public class Message {
     private boolean seen; // Aapke paas ye pehle se hai
     
     // NAYA: Delivered track karne ke liye
-    private boolean delivered = false; 
+    private boolean delivered = false;
+    
+    private String fileUrl;
+    private String fileName;
+    private String fileType;
+    private Long fileSize;
 }

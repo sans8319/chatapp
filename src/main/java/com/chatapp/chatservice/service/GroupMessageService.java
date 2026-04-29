@@ -41,6 +41,19 @@ public class GroupMessageService {
             GroupMessage msg = new GroupMessage();
             msg.setChatGroup(group);
             msg.setContent((String) payload.get("content"));
+
+            if (payload.containsKey("fileUrl")) msg.setFileUrl((String) payload.get("fileUrl"));
+            if (payload.containsKey("fileName")) msg.setFileName((String) payload.get("fileName"));
+            if (payload.containsKey("fileType")) msg.setFileType((String) payload.get("fileType"));
+            if (payload.containsKey("fileSize") && payload.get("fileSize") != null) {
+                Object sizeObj = payload.get("fileSize");
+                if (sizeObj instanceof Number) {
+                    msg.setFileSize(((Number) sizeObj).longValue());
+                } else {
+                    // Agar string form me aaya hai toh usko parse kar lo
+                    msg.setFileSize(Long.parseLong(sizeObj.toString()));
+                }
+            }
             
             // --- NAYA FIX: ROBUST PAYLOAD PARSING ---
             // Ye check karega ki senderId direct aayi hai, ya object ke andar hai (1-on-1 style)
@@ -81,6 +94,10 @@ public class GroupMessageService {
             responseMsg.put("roomId", "GROUP_" + groupId); // Wapas GROUP_ format me bhejo
             responseMsg.put("timestamp", savedMsg.getTimestamp());
             responseMsg.put("seen", true); 
+            responseMsg.put("fileUrl", savedMsg.getFileUrl());
+            responseMsg.put("fileName", savedMsg.getFileName());
+            responseMsg.put("fileType", savedMsg.getFileType());
+            responseMsg.put("fileSize", savedMsg.getFileSize());
 
             System.out.println("✅ SUCCESS: Broadcasting group message to: /topic/room/GROUP_" + groupId);
             
@@ -106,6 +123,10 @@ public class GroupMessageService {
             map.put("roomId", "GROUP_" + groupId);
             map.put("timestamp", msg.getTimestamp());
             map.put("seen", true);
+            map.put("fileUrl", msg.getFileUrl());
+            map.put("fileName", msg.getFileName());
+            map.put("fileType", msg.getFileType());
+            map.put("fileSize", msg.getFileSize());
             return map;
         }).collect(Collectors.toList());
     }

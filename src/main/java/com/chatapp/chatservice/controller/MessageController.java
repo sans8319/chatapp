@@ -42,6 +42,10 @@ public class MessageController {
                         .timestamp(msg.getTimestamp())
                         .delivered(msg.isDelivered())
                         .seen(msg.isSeen())
+                        .fileUrl(msg.getFileUrl())
+                        .fileName(msg.getFileName())
+                        .fileType(msg.getFileType())
+                        .fileSize(msg.getFileSize())
                         .build())
                 .collect(Collectors.toList());
 

@@ -48,6 +48,9 @@ public class FileController {
             String fileUrl = "/uploads/" + fileName;
             
             response.put("url", fileUrl);
+            response.put("name", originalFileName);
+            response.put("type", file.getContentType());
+            response.put("size", String.valueOf(file.getSize()));
             response.put("status", "success");
             
             return ResponseEntity.ok(response);
