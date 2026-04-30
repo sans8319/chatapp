@@ -55,4 +55,9 @@ public class GroupMessage {
     public void setFileType(String fileType) { this.fileType = fileType; }
     public Long getFileSize() { return fileSize; }
     public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
+
+
+    // NAYA: Jisne chat clear ki, uski ID isme save hogi (e.g., ",1,2,")
+    @jakarta.persistence.Column(columnDefinition = "varchar(255) default ''")
+    private String clearedBy = "";
 }

@@ -36,4 +36,8 @@ public class Message {
     private String fileName;
     private String fileType;
     private Long fileSize;
+
+    // NAYA: Jisne chat clear ki, uski ID isme save hogi (e.g., ",1,2,")
+    @jakarta.persistence.Column(columnDefinition = "varchar(255) default ''")
+    private String clearedBy = "";
 }
