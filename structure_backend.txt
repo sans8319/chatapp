@@ -1,0 +1,233 @@
+Folder PATH listing
+Volume serial number is 3A4A-06E9
+C:.
+|   .gitattributes
+|   .gitignore
+|   docker-compose.yml
+|   HELP.md
+|   mvnw
+|   mvnw.cmd
+|   pom.xml
+|   structure_backend.txt
+|   structure_backned.txt
+|   
++---.mvn
+|   \---wrapper
+|           maven-wrapper.properties
+|           
++---.vscode
+|       settings.json
+|       
++---src
+|   +---main
+|   |   +---java
+|   |   |   \---com
+|   |   |       \---chatapp
+|   |   |           \---chatservice
+|   |   |               |   ChatServiceApplication.java
+|   |   |               |   
+|   |   |               +---config
+|   |   |               |       RedisConfig.java
+|   |   |               |       SecurityConfig.java
+|   |   |               |       WebConfig.java
+|   |   |               |       WebSocketConfig.java
+|   |   |               |       
+|   |   |               +---controller
+|   |   |               |       AuthController.java
+|   |   |               |       ChatController.java
+|   |   |               |       FileController.java
+|   |   |               |       GroupController.java
+|   |   |               |       MessageController.java
+|   |   |               |       RoomController.java
+|   |   |               |       UserController.java
+|   |   |               |       
+|   |   |               +---dto
+|   |   |               |       AuthRequest.java
+|   |   |               |       AuthResponse.java
+|   |   |               |       GroupCreateRequest.java
+|   |   |               |       MessageDTO.java
+|   |   |               |       MessageReceipt.java
+|   |   |               |       PasswordChangeDTO.java
+|   |   |               |       UserProfileDTO.java
+|   |   |               |       
+|   |   |               +---entity
+|   |   |               |       ChatGroup.java
+|   |   |               |       ChatRoom.java
+|   |   |               |       GroupMember.java
+|   |   |               |       GroupMessage.java
+|   |   |               |       Message.java
+|   |   |               |       User.java
+|   |   |               |       
+|   |   |               +---repository
+|   |   |               |       ChatGroupRepository.java
+|   |   |               |       ChatRoomRepository.java
+|   |   |               |       GroupMemberRepository.java
+|   |   |               |       GroupMessageRepository.java
+|   |   |               |       MessageRepository.java
+|   |   |               |       UserRepository.java
+|   |   |               |       
+|   |   |               +---security
+|   |   |               |       JwtFilter.java
+|   |   |               |       JwtProvider.java
+|   |   |               |       
+|   |   |               \---service
+|   |   |                       AuthService.java
+|   |   |                       GroupMessageService.java
+|   |   |                       GroupService.java
+|   |   |                       PresenceService.java
+|   |   |                       RedisPublisher.java
+|   |   |                       
+|   |   \---resources
+|   |       |   application.yml
+|   |       |   
+|   |       +---static
+|   |       \---templates
+|   \---test
+|       \---java
+|           \---com
+|               \---chatapp
+|                   \---chatservice
+|                           ChatServiceApplicationTests.java
+|                           
++---target
+|   +---classes
+|   |   |   application.yml
+|   |   |   
+|   |   \---com
+|   |       \---chatapp
+|   |           \---chatservice
+|   |               |   ChatServiceApplication.class
+|   |               |   
+|   |               +---config
+|   |               |       RedisConfig.class
+|   |               |       SecurityConfig.class
+|   |               |       WebConfig.class
+|   |               |       WebSocketConfig.class
+|   |               |       
+|   |               +---controller
+|   |               |       AuthController.class
+|   |               |       ChatController.class
+|   |               |       FileController.class
+|   |               |       GroupController.class
+|   |               |       MessageController.class
+|   |               |       RoomController.class
+|   |               |       UserController.class
+|   |               |       
+|   |               +---dto
+|   |               |       AuthRequest.class
+|   |               |       AuthResponse$AuthResponseBuilder.class
+|   |               |       AuthResponse.class
+|   |               |       GroupCreateRequest.class
+|   |               |       MessageDTO$MessageDTOBuilder.class
+|   |               |       MessageDTO.class
+|   |               |       MessageReceipt$MessageReceiptBuilder.class
+|   |               |       MessageReceipt.class
+|   |               |       PasswordChangeDTO.class
+|   |               |       UserProfileDTO.class
+|   |               |       
+|   |               +---entity
+|   |               |       ChatGroup.class
+|   |               |       ChatRoom$ChatRoomBuilder.class
+|   |               |       ChatRoom.class
+|   |               |       GroupMember.class
+|   |               |       GroupMessage.class
+|   |               |       Message$MessageBuilder.class
+|   |               |       Message.class
+|   |               |       User$UserBuilder.class
+|   |               |       User.class
+|   |               |       
+|   |               +---repository
+|   |               |       ChatGroupRepository.class
+|   |               |       ChatRoomRepository.class
+|   |               |       GroupMemberRepository.class
+|   |               |       GroupMessageRepository.class
+|   |               |       MessageRepository.class
+|   |               |       UserRepository.class
+|   |               |       
+|   |               +---security
+|   |               |       JwtFilter.class
+|   |               |       JwtProvider.class
+|   |               |       
+|   |               \---service
+|   |                       AuthService.class
+|   |                       GroupMessageService.class
+|   |                       GroupService.class
+|   |                       PresenceService.class
+|   |                       RedisPublisher.class
+|   |                       
+|   +---generated-sources
+|   |   \---annotations
+|   +---generated-test-sources
+|   |   \---test-annotations
+|   +---maven-status
+|   |   \---maven-compiler-plugin
+|   |       +---compile
+|   |       |   \---default-compile
+|   |       |           createdFiles.lst
+|   |       |           inputFiles.lst
+|   |       |           
+|   |       \---testCompile
+|   |           \---default-testCompile
+|   |                   createdFiles.lst
+|   |                   inputFiles.lst
+|   |                   
+|   \---test-classes
+|       \---com
+|           \---chatapp
+|               \---chatservice
+|                       ChatServiceApplicationTests.class
+|                       
+\---uploads
+    \---group-avatars
+            03219227-d55d-4b8d-9b1b-dac4239a8626_Screenshot 2026-04-23 105013.png
+            03db4cc5-31df-4d02-a6f7-df7bd67f1a35_Screenshot 2026-04-23 105013.png
+            0688e087-f386-4e07-be88-041746df2429_change ip.txt
+            07c21573-0f9b-4b41-80cc-3c077e20265e_Sanskriti_Gupta_Resume.pdf
+            0e9534eb-2fc5-4e18-ba8b-24e33791987b_Screenshot 2026-04-25 121337.png
+            11bcb578-d15f-49f7-bc0d-bc655cb869d4_orderbooking.txt
+            126ce503-a67d-4ac6-acbe-6014df838f5a_homee.png
+            1e616b14-be07-4180-a5c6-1f9eeae5b564_1749892671218-370531104-Screenshot 2025-05-08 172901.png
+            2107dbcc-bfe9-493d-a33f-97a86be3df25_WhatsApp Image 2025-04-24 at 16.08.41.jpeg
+            219e378e-4881-4672-b506-fba01b6ac999_cpp.txt
+            33ed6f6a-e5f6-42dd-9801-a0a3058ab640_flow.svg
+            38392a16-186d-46c7-bf9a-802ec7ce6cf0_MY_PHOTO.jpg
+            3931c9f4-adee-4bd8-98ba-a1d9e9fd8020_Screenshot 2026-04-22 133810.png
+            3e1f367a-a8b5-4f93-8755-9de3b05318be_W2-D5-S3_v1.0.0_1BDBJBF.docx
+            420aedf7-21fa-4e7f-83e0-51841d4a6c19_Screenshot 2026-04-22 133810.png
+            4ad0526f-78ad-48e4-a2b4-cdf29b2e2e5f_WhatsApp Image 2025-04-24 at 16.08.41.jpeg
+            563d42e5-f4f8-4286-a1f5-acc44dab4939_WSR format - siksha rathore.xlsx
+            569c4452-9749-477f-b07e-b0383e92a86a_chat.png
+            57901f11-5aee-4d71-80aa-b42cbf904113_SORA documentation.docx
+            590ac1b0-e2e6-4c1b-bd57-4575d8d7957e_medical.png
+            5af9b414-2d89-4569-a310-c8457e3b2dd9_nurse.jpg
+            5c64850b-4c9d-4391-becd-fa0059ad68ec_Screenshot 2026-04-25 111853.png
+            6b73cd15-01eb-4f2f-b1e8-cb29727c1ffe_ChatGPT Image Apr 24, 2026, 05_15_26 PM.png
+            70b39651-cacb-443a-852c-ecc953f718f4_blood bank.png
+            74e053d4-82f5-4a3a-8f86-b28befc99d6d_WhatsApp Image 2024-10-02 at 09.02.43_92665ca9.jpg
+            797c69ab-92d4-49bc-9842-72f4afa2bd8f_Conspicuous (2).png
+            7cef3239-136b-4b20-9c0e-de12abca42d6_W2-D5-S3_v1.0.0_1BDBJBF.docx
+            813ec400-187c-4eea-8cd1-22a287b550b6_icon-nurse.png
+            837a6719-a266-47ae-bd1c-612f43edc3b0_Live chatbot.gif
+            8468845b-4519-4d7a-bfa1-30a5dc0df932_promotion_8629358.png
+            87c0c901-8fff-4d5b-8c40-c2e0f77f9dbe_Screenshot 2026-04-25 121337.png
+            8b2344bf-e8d8-48c8-8d26-bfa4869eaa8f_WhatsApp Image 2024-10-02 at 09.02.43_92665ca9.jpg
+            8b56268f-5dd2-4990-839d-5337beccdd22_ChatGPT Image Apr 24, 2026, 05_15_26 PM.png
+            a69a0b36-5957-4040-b91f-13ef1f491c54_faq_17610729.png
+            ac4dcaec-b4ae-48db-90de-30360c56f493_Electrician 1.jpeg
+            ac7b20c7-5671-4291-b803-28b68934ea54_ChatGPT Image Apr 17, 2026, 10_53_16 AM.png
+            b4c4b57f-1bbc-4ec4-9b36-afe275629ada_shedule_11910747.png
+            b4cc13df-9ceb-4501-8d80-36ce63f58c5b_laundary-removebg-preview.png
+            b8a090c1-1d2b-41e0-b22c-2e9088ce6c0c_exhaust fan.png
+            be6b30f1-4d41-49a2-b2b3-faa5191c814a_Screenshot 2026-04-25 135352.png
+            c497a9aa-a606-4fc7-8a59-07aef57e359f_cpp.txt
+            c9cc8f33-3f18-44f8-8c9d-0e7f70ec9553_final-main-game.docx
+            d36a2811-6995-411e-acb9-a82573e4beeb_SORA documentation.docx
+            dcfb81dc-a103-46af-aa25-19f2681b3d3a_cooking.png
+            e803322e-58a2-4bcb-85a0-5d50bab3d775_SORA documentation.docx
+            ea1a0ac0-9656-48db-b50f-1b3ff2f322fa_Screenshot 2026-04-25 121337.png
+            f0cb1768-6503-4395-bbcf-406ada5e75c4_ChatGPT Image Apr 17, 2026, 10_53_16 AM.png
+            f24f986a-ed9a-4e53-b9f4-4ffbec12b651_CS logo.png
+            f7d21713-e77e-4390-bf02-594c64fe58b5_Screenshot 2026-04-25 121723.png
+            facc6f53-883e-492e-ba0f-81559135b780_ChatGPT Image Apr 23, 2026, 06_26_05 PM.png
+            fed08b78-ab5c-490a-b017-d85802804b75_C-Classes (1).pdf
+            

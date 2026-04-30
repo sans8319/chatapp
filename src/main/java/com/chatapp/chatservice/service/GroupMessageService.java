@@ -130,4 +130,25 @@ public class GroupMessageService {
             return map;
         }).collect(Collectors.toList());
     }
+
+    // NAYA: Frontend ke liye sirf Media aur Links nikalna
+    public List<java.util.Map<String, Object>> getGroupMediaAndLinks(Long groupId) {
+        List<GroupMessage> messages = groupMessageRepository.findMediaAndLinksByGroupId(groupId);
+        
+        return messages.stream().map(msg -> {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", msg.getId());
+            map.put("senderId", msg.getSenderId());
+            map.put("senderName", msg.getSenderName());
+            map.put("content", msg.getContent());
+            map.put("roomId", "GROUP_" + groupId);
+            map.put("timestamp", msg.getTimestamp());
+            map.put("seen", true);
+            map.put("fileUrl", msg.getFileUrl());
+            map.put("fileName", msg.getFileName());
+            map.put("fileType", msg.getFileType());
+            map.put("fileSize", msg.getFileSize());
+            return map;
+        }).collect(Collectors.toList());
+    }
 }

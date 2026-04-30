@@ -51,4 +51,33 @@ public class MessageController {
 
         return ResponseEntity.ok(history);
     }
+
+    // ==========================================
+    // NAYA: SIRF MEDIA AUR LINKS FETCH KARNE KE LIYE
+    // ==========================================
+    @GetMapping("/{roomId}/media")
+    public ResponseEntity<?> getRoomMedia(@PathVariable String roomId) {
+        if (roomId != null && roomId.startsWith("GROUP_")) {
+            Long groupId = Long.parseLong(roomId.substring(6));
+            return ResponseEntity.ok(groupMessageService.getGroupMediaAndLinks(groupId));
+        }
+
+        Long parsedRoomId = Long.parseLong(roomId);
+        List<MessageDTO> mediaHistory = messageRepository.findMediaAndLinksByRoomId(parsedRoomId)
+                .stream()
+                .map(msg -> MessageDTO.builder()
+                        .id(msg.getId())
+                        .content(msg.getContent())
+                        .senderUsername(msg.getSender() != null ? msg.getSender().getUsername() : "Unknown")
+                        .roomId(msg.getChatRoom().getId())
+                        .timestamp(msg.getTimestamp())
+                        .fileUrl(msg.getFileUrl())
+                        .fileName(msg.getFileName())
+                        .fileType(msg.getFileType())
+                        .fileSize(msg.getFileSize())
+                        .build())
+                .collect(Collectors.toList());
+                
+        return ResponseEntity.ok(mediaHistory);
+    }
 }
