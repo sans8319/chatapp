@@ -4,6 +4,7 @@ import com.chatapp.chatservice.entity.ChatGroup;
 import com.chatapp.chatservice.entity.GroupMessage;
 import com.chatapp.chatservice.entity.User;
 import com.chatapp.chatservice.repository.ChatGroupRepository;
+import com.chatapp.chatservice.repository.GroupMemberRepository;
 import com.chatapp.chatservice.repository.GroupMessageRepository;
 import com.chatapp.chatservice.repository.UserRepository; // NAYA: Real name fetch karne ke liye
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,12 +22,18 @@ public class GroupMessageService {
     private final ChatGroupRepository chatGroupRepository;
     private final UserRepository userRepository; // NAYA INJECTION
     private final SimpMessagingTemplate messagingTemplate;
+    private final GroupMemberRepository groupMemberRepository;
 
-    public GroupMessageService(GroupMessageRepository groupMessageRepository, ChatGroupRepository chatGroupRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
+    public GroupMessageService(GroupMessageRepository groupMessageRepository, 
+                               ChatGroupRepository chatGroupRepository, 
+                               UserRepository userRepository, 
+                               SimpMessagingTemplate messagingTemplate,
+                               GroupMemberRepository groupMemberRepository) { // NAYA INJECT KIYA
         this.groupMessageRepository = groupMessageRepository;
         this.chatGroupRepository = chatGroupRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
+        this.groupMemberRepository = groupMemberRepository;
     }
 
     // Naya message save karna aur broadcast karna
@@ -111,44 +118,98 @@ public class GroupMessageService {
     }
 
     // Frontend ke liye Chat History nikalna
-    public List<Map<String, Object>> getGroupHistory(Long groupId) {
+    public List<Map<String, Object>> getGroupHistory(Long groupId, Long userId) { // NAYA: userId add kiya
         List<GroupMessage> messages = groupMessageRepository.findByChatGroupIdOrderByTimestampAsc(groupId);
         
-        return messages.stream().map(msg -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", msg.getId());
-            map.put("senderId", msg.getSenderId());
-            map.put("senderName", msg.getSenderName());
-            map.put("content", msg.getContent());
-            map.put("roomId", "GROUP_" + groupId);
-            map.put("timestamp", msg.getTimestamp());
-            map.put("seen", true);
-            map.put("fileUrl", msg.getFileUrl());
-            map.put("fileName", msg.getFileName());
-            map.put("fileType", msg.getFileType());
-            map.put("fileSize", msg.getFileSize());
-            return map;
-        }).collect(Collectors.toList());
+        return messages.stream()
+                // NAYA MAGIC FILTER: Group messages ke liye
+                .filter(msg -> userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ","))
+                .map(msg -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", msg.getId());
+                    map.put("senderId", msg.getSenderId());
+                    map.put("senderName", msg.getSenderName());
+                    map.put("content", msg.getContent());
+                    map.put("roomId", "GROUP_" + groupId);
+                    map.put("timestamp", msg.getTimestamp());
+                    map.put("seen", true);
+                    map.put("fileUrl", msg.getFileUrl());
+                    map.put("fileName", msg.getFileName());
+                    map.put("fileType", msg.getFileType());
+                    map.put("fileSize", msg.getFileSize());
+                    return map;
+                }).collect(Collectors.toList());
     }
 
     // NAYA: Frontend ke liye sirf Media aur Links nikalna
-    public List<java.util.Map<String, Object>> getGroupMediaAndLinks(Long groupId) {
+    public List<java.util.Map<String, Object>> getGroupMediaAndLinks(Long groupId, Long userId) { // NAYA: userId add kiya
         List<GroupMessage> messages = groupMessageRepository.findMediaAndLinksByGroupId(groupId);
         
-        return messages.stream().map(msg -> {
-            java.util.Map<String, Object> map = new java.util.HashMap<>();
-            map.put("id", msg.getId());
-            map.put("senderId", msg.getSenderId());
-            map.put("senderName", msg.getSenderName());
-            map.put("content", msg.getContent());
-            map.put("roomId", "GROUP_" + groupId);
-            map.put("timestamp", msg.getTimestamp());
-            map.put("seen", true);
-            map.put("fileUrl", msg.getFileUrl());
-            map.put("fileName", msg.getFileName());
-            map.put("fileType", msg.getFileType());
-            map.put("fileSize", msg.getFileSize());
-            return map;
-        }).collect(Collectors.toList());
+        return messages.stream()
+                // NAYA MAGIC FILTER: Group media ke liye
+                .filter(msg -> userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ","))
+                .map(msg -> {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", msg.getId());
+                    map.put("senderId", msg.getSenderId());
+                    map.put("senderName", msg.getSenderName());
+                    map.put("content", msg.getContent());
+                    map.put("roomId", "GROUP_" + groupId);
+                    map.put("timestamp", msg.getTimestamp());
+                    map.put("seen", true);
+                    map.put("fileUrl", msg.getFileUrl());
+                    map.put("fileName", msg.getFileName());
+                    map.put("fileType", msg.getFileType());
+                    map.put("fileSize", msg.getFileSize());
+                    return map;
+                }).collect(Collectors.toList());
+    }
+
+    // ==========================================
+    // UPDATED: GROUP CHAT CLEAR & HARD DELETE LOGIC
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
+    public void clearGroupChat(Long groupId, Long userId) {
+        long totalMembers = groupMemberRepository.countByChatGroupId(groupId);
+        if (totalMembers == 0) return; 
+
+        List<GroupMessage> messages = groupMessageRepository.findByChatGroupIdOrderByTimestampAsc(groupId);
+        List<GroupMessage> toDelete = new java.util.ArrayList<>();
+        List<GroupMessage> toSave = new java.util.ArrayList<>();
+
+        for (GroupMessage msg : messages) {
+            
+            // NAYA MAGIC: System messages ko ignore karo taaki badge delete na ho!
+            boolean isSystemMsg = "System".equals(msg.getSenderName()) || 
+                                  "###GROUP_CREATED###".equals(msg.getContent()) || 
+                                  "You were added to this group.".equals(msg.getContent());
+                                  
+            if (isSystemMsg) {
+                toSave.add(msg); // Isko safe list mein daalo
+                continue;        // Aur agle message par badh jao (taaki ispe clearedBy ka tag na lage)
+            }
+
+            String cleared = msg.getClearedBy() == null ? "" : msg.getClearedBy();
+            String token = "," + userId + ",";
+
+            if (!cleared.contains(token)) {
+                cleared += token;
+                msg.setClearedBy(cleared);
+            }
+
+            int count = 0;
+            for (String id : cleared.split(",")) {
+                if (!id.trim().isEmpty()) count++;
+            }
+
+            if (count >= totalMembers) {
+                toDelete.add(msg);
+            } else {
+                toSave.add(msg);
+            }
+        }
+
+        groupMessageRepository.deleteAll(toDelete);
+        groupMessageRepository.saveAll(toSave);
     }
 }

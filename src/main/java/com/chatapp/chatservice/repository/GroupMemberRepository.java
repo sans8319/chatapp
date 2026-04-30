@@ -6,5 +6,6 @@ import java.util.List;
 
 // Yahan <GroupMember, Long> hona zaroori hai!
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
+    long countByChatGroupId(Long groupId);
     List<GroupMember> findByUserId(Long userId);
 }

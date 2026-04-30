@@ -26,7 +26,7 @@ public class MessageController {
         if (roomId != null && roomId.startsWith("GROUP_")) {
             Long groupId = Long.parseLong(roomId.substring(6));
             // Group ke history mein bhi frontend se filter laga lena chahiye ya Service update karni hogi.
-            return ResponseEntity.ok(groupMessageService.getGroupHistory(groupId));
+            return ResponseEntity.ok(groupMessageService.getGroupHistory(groupId, userId));
         }
 
         Long parsedRoomId = Long.parseLong(roomId); 
@@ -60,7 +60,7 @@ public class MessageController {
     public ResponseEntity<?> getRoomMedia(@PathVariable String roomId, @RequestParam(required = false) Long userId) { // NAYA: Yahan userId parameter add kiya
         if (roomId != null && roomId.startsWith("GROUP_")) {
             Long groupId = Long.parseLong(roomId.substring(6));
-            return ResponseEntity.ok(groupMessageService.getGroupMediaAndLinks(groupId));
+            return ResponseEntity.ok(groupMessageService.getGroupMediaAndLinks(groupId, userId));
         }
 
         Long parsedRoomId = Long.parseLong(roomId);
@@ -83,30 +83,58 @@ public class MessageController {
                 
         return ResponseEntity.ok(mediaHistory);
     }
-
-    @Transactional
+    
+    // ==========================================
+    // UPDATED: CLEAR CHAT ROUTE (Hard & Soft Delete)
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
     @DeleteMapping("/{roomId}/clear")
     public ResponseEntity<?> clearChatHistory(@PathVariable String roomId, @RequestParam Long userId) {
+        
         if (roomId.startsWith("GROUP_")) {
-            // Hum groups ko abhi as-is chhod sakte hain ya GroupMessageService me update kar sakte hain
+            Long groupId = Long.parseLong(roomId.substring(6));
+            groupMessageService.clearGroupChat(groupId, userId); 
         } else {
             Long parsedRoomId = Long.parseLong(roomId);
-            // Room ke saare messages nikale
             List<com.chatapp.chatservice.entity.Message> messages = messageRepository.findByChatRoomIdOrderByTimestampAsc(parsedRoomId);
             
-            // Har message par is user ki ID tag kar di
+            List<com.chatapp.chatservice.entity.Message> toDelete = new java.util.ArrayList<>();
+            List<com.chatapp.chatservice.entity.Message> toSave = new java.util.ArrayList<>();
+
             for (com.chatapp.chatservice.entity.Message msg : messages) {
-                if (msg.getClearedBy() == null) {
-                    msg.setClearedBy("");
+                
+                // NAYA MAGIC: System messages ko yahan bhi bacha lo!
+                boolean isSystemMsg = "###GROUP_CREATED###".equals(msg.getContent()) || 
+                                      (msg.getSender() != null && "System".equals(msg.getSender().getUsername()));
+                                      
+                if (isSystemMsg) {
+                    toSave.add(msg);
+                    continue; // Skip tagging this message
                 }
-                // Agar user ki ID pehle se nahi hai, toh append kar do
-                if (!msg.getClearedBy().contains("," + userId + ",")) {
-                    msg.setClearedBy(msg.getClearedBy() + "," + userId + ",");
+
+                String cleared = msg.getClearedBy() == null ? "" : msg.getClearedBy();
+                String token = "," + userId + ",";
+
+                if (!cleared.contains(token)) {
+                    cleared += token;
+                    msg.setClearedBy(cleared);
+                }
+
+                int count = 0;
+                for (String id : cleared.split(",")) {
+                    if (!id.trim().isEmpty()) count++;
+                }
+
+                if (count >= 2) {
+                    toDelete.add(msg);
+                } else {
+                    toSave.add(msg);
                 }
             }
-            // Database me save kar diya
-            messageRepository.saveAll(messages);
+            
+            messageRepository.deleteAll(toDelete);
+            messageRepository.saveAll(toSave);
         }
-        return ResponseEntity.ok("Chat cleared for user: " + userId);
+        return ResponseEntity.ok("Chat cleared and memory optimized for user: " + userId);
     }
 }

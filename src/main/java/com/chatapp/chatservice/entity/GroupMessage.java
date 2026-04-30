@@ -60,4 +60,11 @@ public class GroupMessage {
     // NAYA: Jisne chat clear ki, uski ID isme save hogi (e.g., ",1,2,")
     @jakarta.persistence.Column(columnDefinition = "varchar(255) default ''")
     private String clearedBy = "";
+    public String getClearedBy() {
+    return clearedBy;
+    }
+
+    public void setClearedBy(String clearedBy) {
+        this.clearedBy = clearedBy;
+    }
 }
