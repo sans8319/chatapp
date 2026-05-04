@@ -35,4 +35,11 @@ public class GroupController {
         List<Map<String, Object>> groups = groupService.getUserGroups(userId);
         return ResponseEntity.ok(groups);
     }
+
+    // GroupController.java mein add karein
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<List<Map<String, Object>>> getGroupMembers(@PathVariable Long groupId) {
+        List<Map<String, Object>> members = groupService.getGroupMembers(groupId);
+        return ResponseEntity.ok(members);
+    }
 }

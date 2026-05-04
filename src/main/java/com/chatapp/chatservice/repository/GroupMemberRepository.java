@@ -8,4 +8,5 @@ import java.util.List;
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
     long countByChatGroupId(Long groupId);
     List<GroupMember> findByUserId(Long userId);
+    List<GroupMember> findByChatGroupId(Long groupId);
 }

@@ -105,4 +105,23 @@ public class GroupService {
             return groupData;
         }).collect(Collectors.toList());
     }
+
+    // GroupService.java mein aakhir mein 
+    public List<Map<String, Object>> getGroupMembers(Long groupId) {
+        List<GroupMember> members = groupMemberRepository.findByChatGroupId(groupId);
+        return members.stream().map(m -> {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("id", m.getUser().getId());
+            userMap.put("username", m.getUser().getUsername());
+            userMap.put("profilePicture", m.getUser().getProfilePicture());
+            userMap.put("online", m.getUser().isOnline());
+            userMap.put("customStatusText", m.getUser().getCustomStatusText());
+            
+            // NAYA: Status ki baaki details bhi bhejni hongi
+            userMap.put("statusState", m.getUser().getStatusState()); 
+            userMap.put("customStatusColor", m.getUser().getCustomStatusColor()); 
+            
+            return userMap;
+        }).collect(Collectors.toList());
+    }
 }
