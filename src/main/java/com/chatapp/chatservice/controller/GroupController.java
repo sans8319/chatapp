@@ -42,4 +42,17 @@ public class GroupController {
         List<Map<String, Object>> members = groupService.getGroupMembers(groupId);
         return ResponseEntity.ok(members);
     }
+
+    // ==========================================
+    // NAYA: ADD MEMBER API
+    // ==========================================
+    @PostMapping("/{groupId}/members/add")
+    public ResponseEntity<?> addMembersToGroup(
+            @PathVariable Long groupId,
+            @RequestBody List<Long> userIds,
+            @RequestParam Long addedById) {
+        
+        groupService.addMembersToGroup(groupId, userIds, addedById);
+        return ResponseEntity.ok(Map.of("message", "Members added successfully"));
+    }
 }

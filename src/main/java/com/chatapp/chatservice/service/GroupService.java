@@ -124,4 +124,46 @@ public class GroupService {
             return userMap;
         }).collect(Collectors.toList());
     }
+
+    // ==========================================
+    // NAYA: ADD MEMBERS TO EXISTING GROUP LOGIC
+    // ==========================================
+    @Transactional
+    public void addMembersToGroup(Long groupId, List<Long> userIds, Long addedById) {
+        ChatGroup group = groupRepository.findById(groupId).orElseThrow();
+        User addedBy = userRepository.findById(addedById).orElse(null);
+        String adderName = (addedBy != null) ? addedBy.getUsername() : "Someone";
+
+        // Pehle se group me kon hai wo nikal lo
+        List<GroupMember> existingMembers = groupMemberRepository.findByChatGroupId(groupId);
+        List<Long> existingUserIds = existingMembers.stream().map(m -> m.getUser().getId()).collect(Collectors.toList());
+
+        for (Long userId : userIds) {
+            // Agar banda pehle se group me NAHI hai, tabhi add karo
+            if (!existingUserIds.contains(userId)) {
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    GroupMember member = new GroupMember();
+                    member.setChatGroup(group);
+                    member.setUser(user);
+                    groupMemberRepository.save(member);
+
+                    // System Message: "Sanskriti added Priya."
+                    Map<String, Object> sysPayload = new HashMap<>();
+                    sysPayload.put("content", adderName + " added " + user.getUsername() + ".");
+                    sysPayload.put("senderId", addedById);
+                    sysPayload.put("senderName", "System");
+                    sysPayload.put("roomId", "GROUP_" + groupId);
+                    groupMessageService.saveAndBroadcastMessage(groupId, sysPayload);
+
+                    // Naye user ko notification bhejo taaki uske app me group load ho jaye
+                    Map<String, String> notification = new HashMap<>();
+                    notification.put("type", "NEW_GROUP");
+                    try {
+                        messagingTemplate.convertAndSend("/topic/user/" + userId, notification);
+                    } catch (Exception e) { }
+                }
+            }
+        }
+    }
 }
