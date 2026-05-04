@@ -108,6 +108,10 @@ public class GroupService {
 
     // GroupService.java mein aakhir mein 
     public List<Map<String, Object>> getGroupMembers(Long groupId) {
+
+        ChatGroup group = groupRepository.findById(groupId).orElse(null);
+        Long adminId = (group != null) ? group.getCreatedBy() : -1L;
+
         List<GroupMember> members = groupMemberRepository.findByChatGroupId(groupId);
         return members.stream().map(m -> {
             Map<String, Object> userMap = new HashMap<>();
@@ -120,6 +124,7 @@ public class GroupService {
             // NAYA: Status ki baaki details bhi bhejni hongi
             userMap.put("statusState", m.getUser().getStatusState()); 
             userMap.put("customStatusColor", m.getUser().getCustomStatusColor()); 
+            userMap.put("isAdmin", m.getUser().getId().equals(adminId));
             
             return userMap;
         }).collect(Collectors.toList());
