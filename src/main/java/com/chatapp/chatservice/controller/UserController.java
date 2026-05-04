@@ -143,4 +143,29 @@ public class UserController {
             
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found"));
     }
+
+    // --- ADD THIS AT THE END OF UserController.java ---
+    @PostMapping("/{userId}/toggle-pin/{roomId}")
+    public ResponseEntity<?> togglePin(@PathVariable Long userId, @PathVariable String roomId) {
+        com.chatapp.chatservice.entity.User user = userRepository.findById(userId).orElseThrow();
+        String pinned = user.getPinnedRooms() == null ? "" : user.getPinnedRooms();
+        
+        // Ex: ",12," ya ",GROUP_4,"
+        String token = "," + roomId + ","; 
+        
+        if (pinned.contains(token)) {
+            pinned = pinned.replace(token, ","); // Pehle se hai toh Unpin kardo
+        } else {
+            if (pinned.isEmpty()) pinned = ",";
+            pinned += roomId + ","; // Nahi hai toh Pin kardo
+        }
+        
+        pinned = pinned.replaceAll(",+", ","); // Extra commas clean karein
+        if (pinned.equals(",")) pinned = "";
+        
+        user.setPinnedRooms(pinned);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(java.util.Map.of("pinnedRooms", pinned));
+    }
 }

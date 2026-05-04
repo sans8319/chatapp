@@ -54,4 +54,11 @@ public class User {
 
     @Column(name = "country_code")
     private String countryCode;
+
+    // --- ADD THIS BLOCK IN User.java ---
+    @jakarta.persistence.Column(columnDefinition = "varchar(500) default ''")
+    private String pinnedRooms = "";
+
+    public String getPinnedRooms() { return pinnedRooms; }
+    public void setPinnedRooms(String pinnedRooms) { this.pinnedRooms = pinnedRooms; }
 }
