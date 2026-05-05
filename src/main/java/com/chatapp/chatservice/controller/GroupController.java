@@ -62,4 +62,11 @@ public class GroupController {
         groupService.makeAdmin(groupId, userId);
         return ResponseEntity.ok(Map.of("message", "Promoted to Admin"));
     }
+
+    // 🛑 NAYA: Dismiss Admin API
+    @PostMapping("/{groupId}/dismiss-admin/{userId}")
+    public ResponseEntity<?> dismissAdmin(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupService.dismissAdmin(groupId, userId);
+        return ResponseEntity.ok(Map.of("message", "Dismissed as Admin"));
+    }
 }

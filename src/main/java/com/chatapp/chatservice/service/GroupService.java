@@ -124,6 +124,7 @@ public class GroupService {
             boolean isCreator = m.getUser().getId().equals(adminId);
             boolean isPromoted = promotedAdmins.contains("," + m.getUser().getId() + ",");
             userMap.put("isAdmin", isCreator || isPromoted);
+            userMap.put("isCreator", isCreator);
             
             return userMap;
         }).collect(Collectors.toList());
@@ -191,5 +192,29 @@ public class GroupService {
         } catch (Exception e) {
             System.err.println("Admin promotion broadcast failed: " + e.getMessage());
         }
+    }
+
+    // 🛑 NAYA: Dismiss Admin Logic
+    @Transactional
+    public void dismissAdmin(Long groupId, Long userId) {
+        ChatGroup group = groupRepository.findById(groupId).orElseThrow();
+        String admins = group.getAdminIds() == null ? "" : group.getAdminIds();
+        
+        String token = "," + userId + ",";
+        if (admins.contains(token)) {
+            admins = admins.replace(token, ","); // Remove kar do
+            if (admins.equals(",")) admins = "";
+            group.setAdminIds(admins);
+            groupRepository.save(group); // Database me update
+        }
+        
+        // Realtime signal bhejo
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "ADMIN_DISMISSED");
+        wsMsg.put("userId", userId);
+        wsMsg.put("roomId", "GROUP_" + groupId);
+        try {
+            messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
+        } catch (Exception e) {}
     }
 }
