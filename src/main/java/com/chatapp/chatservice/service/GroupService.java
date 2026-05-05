@@ -1,6 +1,6 @@
 package com.chatapp.chatservice.service;
 
-import com.chatapp.chatservice.dto.GroupCreateRequest; // NAYA IMPORT
+import com.chatapp.chatservice.dto.GroupCreateRequest;
 import com.chatapp.chatservice.entity.ChatGroup;
 import com.chatapp.chatservice.entity.GroupMember;
 import com.chatapp.chatservice.entity.User;
@@ -34,15 +34,13 @@ public class GroupService {
     }
 
     @Transactional
-    public ChatGroup createGroup(GroupCreateRequest request, Long creatorId) { // NAYA: Ab poora request object aayega
+    public ChatGroup createGroup(GroupCreateRequest request, Long creatorId) { 
         ChatGroup group = new ChatGroup();
         group.setName(request.getName());
         
-        // --- NAYE FIELDS DB MEIN SAVE HO RAHE HAIN ---
         group.setDescription(request.getDescription());
         group.setPermissions(request.getPermissions());
         group.setProfilePicture(request.getProfilePicture());
-        // ---------------------------------------------
 
         group.setCreatedBy(creatorId);
         ChatGroup savedGroup = groupRepository.save(group);
@@ -93,11 +91,9 @@ public class GroupService {
             groupData.put("id", membership.getChatGroup().getId());
             groupData.put("username", membership.getChatGroup().getName()); 
             
-            // --- NAYE FIELDS FRONTEND KO BHEJNE KE LIYE ---
             groupData.put("description", membership.getChatGroup().getDescription());
             groupData.put("permissions", membership.getChatGroup().getPermissions());
             groupData.put("profilePicture", membership.getChatGroup().getProfilePicture());
-            // ----------------------------------------------
             
             groupData.put("isGroup", true); 
             groupData.put("lastMessage", "Tap to start chatting...");
@@ -106,11 +102,11 @@ public class GroupService {
         }).collect(Collectors.toList());
     }
 
-    // GroupService.java mein aakhir mein 
+    // 🛑 UPDATED: Naye Promoted Admins ko bhi list me mark karega
     public List<Map<String, Object>> getGroupMembers(Long groupId) {
-
         ChatGroup group = groupRepository.findById(groupId).orElse(null);
         Long adminId = (group != null) ? group.getCreatedBy() : -1L;
+        String promotedAdmins = (group != null && group.getAdminIds() != null) ? group.getAdminIds() : "";
 
         List<GroupMember> members = groupMemberRepository.findByChatGroupId(groupId);
         return members.stream().map(m -> {
@@ -121,30 +117,28 @@ public class GroupService {
             userMap.put("online", m.getUser().isOnline());
             userMap.put("customStatusText", m.getUser().getCustomStatusText());
             
-            // NAYA: Status ki baaki details bhi bhejni hongi
             userMap.put("statusState", m.getUser().getStatusState()); 
             userMap.put("customStatusColor", m.getUser().getCustomStatusColor()); 
-            userMap.put("isAdmin", m.getUser().getId().equals(adminId));
+            
+            // NAYA MAGIC: Check karo ki Original Creator hai YA Promoted Admin hai
+            boolean isCreator = m.getUser().getId().equals(adminId);
+            boolean isPromoted = promotedAdmins.contains("," + m.getUser().getId() + ",");
+            userMap.put("isAdmin", isCreator || isPromoted);
             
             return userMap;
         }).collect(Collectors.toList());
     }
 
-    // ==========================================
-    // NAYA: ADD MEMBERS TO EXISTING GROUP LOGIC
-    // ==========================================
     @Transactional
     public void addMembersToGroup(Long groupId, List<Long> userIds, Long addedById) {
         ChatGroup group = groupRepository.findById(groupId).orElseThrow();
         User addedBy = userRepository.findById(addedById).orElse(null);
         String adderName = (addedBy != null) ? addedBy.getUsername() : "Someone";
 
-        // Pehle se group me kon hai wo nikal lo
         List<GroupMember> existingMembers = groupMemberRepository.findByChatGroupId(groupId);
         List<Long> existingUserIds = existingMembers.stream().map(m -> m.getUser().getId()).collect(Collectors.toList());
 
         for (Long userId : userIds) {
-            // Agar banda pehle se group me NAHI hai, tabhi add karo
             if (!existingUserIds.contains(userId)) {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
@@ -153,7 +147,6 @@ public class GroupService {
                     member.setUser(user);
                     groupMemberRepository.save(member);
 
-                    // System Message: "Sanskriti added Priya."
                     Map<String, Object> sysPayload = new HashMap<>();
                     sysPayload.put("content", adderName + " added " + user.getUsername() + ".");
                     sysPayload.put("senderId", addedById);
@@ -161,7 +154,6 @@ public class GroupService {
                     sysPayload.put("roomId", "GROUP_" + groupId);
                     groupMessageService.saveAndBroadcastMessage(groupId, sysPayload);
 
-                    // Naye user ko notification bhejo taaki uske app me group load ho jaye
                     Map<String, String> notification = new HashMap<>();
                     notification.put("type", "NEW_GROUP");
                     try {
@@ -169,6 +161,35 @@ public class GroupService {
                     } catch (Exception e) { }
                 }
             }
+        }
+    }
+
+    // ==========================================
+    // 🛑 NAYA: MAKE ADMIN LOGIC
+    // ==========================================
+    @Transactional
+    public void makeAdmin(Long groupId, Long userId) {
+        ChatGroup group = groupRepository.findById(groupId).orElseThrow();
+        String admins = group.getAdminIds() == null ? "" : group.getAdminIds();
+        
+        String token = "," + userId + ",";
+        if (!admins.contains(token)) {
+            if (admins.isEmpty()) admins = ",";
+            admins += userId + ",";
+            group.setAdminIds(admins);
+            groupRepository.save(group); // Database me hamesha ke liye save
+        }
+        
+        // Realtime WebSocket Notification dusre users ke panel update karne ke liye
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "ADMIN_PROMOTED");
+        wsMsg.put("userId", userId);
+        wsMsg.put("roomId", "GROUP_" + groupId);
+        
+        try {
+            messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
+        } catch (Exception e) {
+            System.err.println("Admin promotion broadcast failed: " + e.getMessage());
         }
     }
 }

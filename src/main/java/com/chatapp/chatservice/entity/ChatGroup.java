@@ -41,4 +41,10 @@ public class ChatGroup {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public Long getCreatedBy() { return createdBy; }
     public void setCreatedBy(Long createdBy) { this.createdBy = createdBy; }
+
+    @Column(columnDefinition = "varchar(1000) default ''")
+    private String adminIds = "";
+
+    public String getAdminIds() { return adminIds; }
+    public void setAdminIds(String adminIds) { this.adminIds = adminIds; }
 }

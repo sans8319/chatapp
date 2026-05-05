@@ -55,4 +55,11 @@ public class GroupController {
         groupService.addMembersToGroup(groupId, userIds, addedById);
         return ResponseEntity.ok(Map.of("message", "Members added successfully"));
     }
+
+    // 🛑 NAYA: Make Admin API
+    @PostMapping("/{groupId}/make-admin/{userId}")
+    public ResponseEntity<?> makeAdmin(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupService.makeAdmin(groupId, userId);
+        return ResponseEntity.ok(Map.of("message", "Promoted to Admin"));
+    }
 }
