@@ -25,4 +25,5 @@ public class MessageDTO {
     private String fileName;
     private String fileType;
     private Long fileSize;
+    private boolean isDeleted;
 }

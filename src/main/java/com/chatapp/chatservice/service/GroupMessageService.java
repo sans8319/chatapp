@@ -6,7 +6,7 @@ import com.chatapp.chatservice.entity.User;
 import com.chatapp.chatservice.repository.ChatGroupRepository;
 import com.chatapp.chatservice.repository.GroupMemberRepository;
 import com.chatapp.chatservice.repository.GroupMessageRepository;
-import com.chatapp.chatservice.repository.UserRepository; // NAYA: Real name fetch karne ke liye
+import com.chatapp.chatservice.repository.UserRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class GroupMessageService {
 
     private final GroupMessageRepository groupMessageRepository;
     private final ChatGroupRepository chatGroupRepository;
-    private final UserRepository userRepository; // NAYA INJECTION
+    private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final GroupMemberRepository groupMemberRepository;
 
@@ -28,7 +28,7 @@ public class GroupMessageService {
                                ChatGroupRepository chatGroupRepository, 
                                UserRepository userRepository, 
                                SimpMessagingTemplate messagingTemplate,
-                               GroupMemberRepository groupMemberRepository) { // NAYA INJECT KIYA
+                               GroupMemberRepository groupMemberRepository) { 
         this.groupMessageRepository = groupMessageRepository;
         this.chatGroupRepository = chatGroupRepository;
         this.userRepository = userRepository;
@@ -36,7 +36,6 @@ public class GroupMessageService {
         this.groupMemberRepository = groupMemberRepository;
     }
 
-    // Naya message save karna aur broadcast karna
     public void saveAndBroadcastMessage(Long groupId, Map<String, Object> payload) {
         try {
             ChatGroup group = chatGroupRepository.findById(groupId).orElse(null);
@@ -57,13 +56,10 @@ public class GroupMessageService {
                 if (sizeObj instanceof Number) {
                     msg.setFileSize(((Number) sizeObj).longValue());
                 } else {
-                    // Agar string form me aaya hai toh usko parse kar lo
                     msg.setFileSize(Long.parseLong(sizeObj.toString()));
                 }
             }
             
-            // --- NAYA FIX: ROBUST PAYLOAD PARSING ---
-            // Ye check karega ki senderId direct aayi hai, ya object ke andar hai (1-on-1 style)
             Long senderId = null;
             if (payload.containsKey("senderId") && payload.get("senderId") != null) {
                 senderId = ((Number) payload.get("senderId")).longValue();
@@ -81,7 +77,6 @@ public class GroupMessageService {
 
             msg.setSenderId(senderId);
 
-            // Database se real sender name nikalna (Bubble ke upar dikhane ke liye)
             User senderUser = userRepository.findById(senderId).orElse(null);
             if (senderUser != null) {
                 msg.setSenderName(senderUser.getUsername());
@@ -89,26 +84,22 @@ public class GroupMessageService {
                 msg.setSenderName((String) payload.getOrDefault("senderName", "Member"));
             }
 
-            // Message DB me save kiya
             GroupMessage savedMsg = groupMessageRepository.save(msg);
 
-            // Message ko frontend format me tayar karo
             Map<String, Object> responseMsg = new HashMap<>();
             responseMsg.put("id", savedMsg.getId());
             responseMsg.put("senderId", savedMsg.getSenderId());
             responseMsg.put("senderName", savedMsg.getSenderName());
             responseMsg.put("content", savedMsg.getContent());
-            responseMsg.put("roomId", "GROUP_" + groupId); // Wapas GROUP_ format me bhejo
+            responseMsg.put("roomId", "GROUP_" + groupId); 
             responseMsg.put("timestamp", savedMsg.getTimestamp());
             responseMsg.put("seen", true); 
             responseMsg.put("fileUrl", savedMsg.getFileUrl());
             responseMsg.put("fileName", savedMsg.getFileName());
             responseMsg.put("fileType", savedMsg.getFileType());
             responseMsg.put("fileSize", savedMsg.getFileSize());
+            responseMsg.put("isDeleted", false);
 
-            System.out.println("✅ SUCCESS: Broadcasting group message to: /topic/room/GROUP_" + groupId);
-            
-            // WebSocket par bhej do
             messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, responseMsg);
 
         } catch (Exception e) {
@@ -117,12 +108,10 @@ public class GroupMessageService {
         }
     }
 
-    // Frontend ke liye Chat History nikalna
-    public List<Map<String, Object>> getGroupHistory(Long groupId, Long userId) { // NAYA: userId add kiya
+    public List<Map<String, Object>> getGroupHistory(Long groupId, Long userId) { 
         List<GroupMessage> messages = groupMessageRepository.findByChatGroupIdOrderByTimestampAsc(groupId);
         
         return messages.stream()
-                // NAYA MAGIC FILTER: Group messages ke liye
                 .filter(msg -> userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ","))
                 .map(msg -> {
                     Map<String, Object> map = new HashMap<>();
@@ -137,17 +126,17 @@ public class GroupMessageService {
                     map.put("fileName", msg.getFileName());
                     map.put("fileType", msg.getFileType());
                     map.put("fileSize", msg.getFileSize());
+                    map.put("isDeleted", msg.isDeleted()); // 🛑 NAYA: Bhejo
                     return map;
                 }).collect(Collectors.toList());
     }
 
-    // NAYA: Frontend ke liye sirf Media aur Links nikalna
-    public List<java.util.Map<String, Object>> getGroupMediaAndLinks(Long groupId, Long userId) { // NAYA: userId add kiya
+    public List<java.util.Map<String, Object>> getGroupMediaAndLinks(Long groupId, Long userId) { 
         List<GroupMessage> messages = groupMessageRepository.findMediaAndLinksByGroupId(groupId);
         
         return messages.stream()
-                // NAYA MAGIC FILTER: Group media ke liye
-                .filter(msg -> userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ","))
+                // 🛑 NAYA MAGIC FILTER: Deleted messages Media tab me nahi aayenge
+                .filter(msg -> !msg.isDeleted() && (userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ",")))
                 .map(msg -> {
                     java.util.Map<String, Object> map = new java.util.HashMap<>();
                     map.put("id", msg.getId());
@@ -165,9 +154,6 @@ public class GroupMessageService {
                 }).collect(Collectors.toList());
     }
 
-    // ==========================================
-    // UPDATED: GROUP CHAT CLEAR & HARD DELETE LOGIC
-    // ==========================================
     @org.springframework.transaction.annotation.Transactional
     public void clearGroupChat(Long groupId, Long userId) {
         long totalMembers = groupMemberRepository.countByChatGroupId(groupId);
@@ -179,14 +165,13 @@ public class GroupMessageService {
 
         for (GroupMessage msg : messages) {
             
-            // NAYA MAGIC: System messages ko ignore karo taaki badge delete na ho!
             boolean isSystemMsg = "System".equals(msg.getSenderName()) || 
                                   "###GROUP_CREATED###".equals(msg.getContent()) || 
                                   "You were added to this group.".equals(msg.getContent());
                                   
             if (isSystemMsg) {
-                toSave.add(msg); // Isko safe list mein daalo
-                continue;        // Aur agle message par badh jao (taaki ispe clearedBy ka tag na lage)
+                toSave.add(msg); 
+                continue;        
             }
 
             String cleared = msg.getClearedBy() == null ? "" : msg.getClearedBy();
@@ -211,5 +196,30 @@ public class GroupMessageService {
 
         groupMessageRepository.deleteAll(toDelete);
         groupMessageRepository.saveAll(toSave);
+    }
+
+    // ==========================================
+    // 🛑 NAYA: SOFT DELETE FOR GROUP MESSAGES
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
+    public void softDeleteGroupMessage(Long messageId, Long groupId) {
+        GroupMessage msg = groupMessageRepository.findById(messageId)
+            .orElseThrow(() -> new RuntimeException("Group message not found"));
+
+        msg.setDeleted(true);
+        msg.setContent("This message is deleted");
+        msg.setFileUrl(null); 
+        msg.setFileName(null);
+        msg.setFileType(null);
+        msg.setFileSize(null);
+        groupMessageRepository.save(msg);
+
+        // Real-time broadcast karo
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "MESSAGE_DELETED");
+        wsMsg.put("messageId", messageId);
+        wsMsg.put("roomId", "GROUP_" + groupId);
+        
+        messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
     }
 }

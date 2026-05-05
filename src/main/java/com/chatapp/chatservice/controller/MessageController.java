@@ -2,10 +2,14 @@ package com.chatapp.chatservice.controller;
 
 import com.chatapp.chatservice.dto.MessageDTO;
 import com.chatapp.chatservice.repository.MessageRepository;
+import com.chatapp.chatservice.entity.Message;
 import com.chatapp.chatservice.service.GroupMessageService; // NAYA IMPORT
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +22,7 @@ public class MessageController {
 
     private final MessageRepository messageRepository;
     private final GroupMessageService groupMessageService; // NAYA INJECTION
+    private final SimpMessagingTemplate messagingTemplate;
 
     // NAYA FIX: Long ko String kiya taaki 'GROUP_1' bhi read ho sake
     @GetMapping("/{roomId}")
@@ -48,6 +53,7 @@ public class MessageController {
                         .fileName(msg.getFileName())
                         .fileType(msg.getFileType())
                         .fileSize(msg.getFileSize())
+                        .isDeleted(msg.isDeleted())
                         .build())
                 .collect(Collectors.toList());
 
@@ -136,5 +142,37 @@ public class MessageController {
             messageRepository.saveAll(toSave);
         }
         return ResponseEntity.ok("Chat cleared and memory optimized for user: " + userId);
+    }
+
+    // 🛑 UPDATED: Soft Delete Message API (Handles BOTH 1-on-1 and Groups)
+    @PutMapping("/{messageId}/soft-delete")
+    public ResponseEntity<?> softDeleteMessage(@PathVariable Long messageId, @RequestParam String roomId) {
+        
+        if (roomId != null && roomId.startsWith("GROUP_")) {
+            // Agar group ka message hai, toh service me bhej do
+            Long groupId = Long.parseLong(roomId.substring(6));
+            groupMessageService.softDeleteGroupMessage(messageId, groupId);
+        } else {
+            // Agar 1-on-1 chat ka message hai
+            Message msg = messageRepository.findById(messageId).orElseThrow(() -> new RuntimeException("Message not found"));
+            
+            msg.setDeleted(true);
+            msg.setContent("This message is deleted");
+            msg.setFileUrl(null); 
+            msg.setFileName(null);
+            msg.setFileType(null);
+            msg.setFileSize(null);
+            messageRepository.save(msg);
+
+            // Real-time WebSocket signal sabko bhejo
+            Map<String, Object> wsMsg = new HashMap<>();
+            wsMsg.put("type", "MESSAGE_DELETED");
+            wsMsg.put("messageId", messageId);
+            wsMsg.put("roomId", roomId);
+            
+            messagingTemplate.convertAndSend("/topic/room/" + roomId, wsMsg);
+        }
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Deleted for everyone"));
     }
 }

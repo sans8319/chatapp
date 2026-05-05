@@ -1,0 +1,4 @@
+go to airtel router 192.1681.1.1
+ho to lan --> then Dhcp static |
+to find mac address of Linux ifconfig --wlo ethernet and new ip 
+then re boot router

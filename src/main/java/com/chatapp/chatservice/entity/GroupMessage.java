@@ -67,4 +67,10 @@ public class GroupMessage {
     public void setClearedBy(String clearedBy) {
         this.clearedBy = clearedBy;
     }
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+    
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
 }

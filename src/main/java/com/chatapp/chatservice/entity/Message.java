@@ -47,4 +47,7 @@ public class Message {
     public void setClearedBy(String clearedBy) {
         this.clearedBy = clearedBy;
     }
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 }
