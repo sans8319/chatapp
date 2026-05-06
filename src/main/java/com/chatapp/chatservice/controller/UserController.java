@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.util.Map;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.chatapp.chatservice.service.GroupMessageService groupMessageService;
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -139,6 +141,7 @@ public class UserController {
             user.setDesignation("Former Member");
 
             userRepository.save(user);
+            groupMessageService.removeDeletedUserFromAllGroups(id);
             return ResponseEntity.ok("Account deleted successfully.");
             
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found"));

@@ -30,4 +30,5 @@ public class GroupMember {
     public void setUser(User user) { this.user = user; }
     public LocalDateTime getJoinedAt() { return joinedAt; }
     public void setJoinedAt(LocalDateTime joinedAt) { this.joinedAt = joinedAt; }
+    
 }

@@ -250,4 +250,85 @@ public class GroupMessageService {
         
         messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
     }
+
+    // ==========================================
+    // 🛑 NAYA: DELETE USER FROM ALL GROUPS & MANAGE ADMIN (STRING LOGIC)
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
+    public void removeDeletedUserFromAllGroups(Long userId) {
+        List<com.chatapp.chatservice.entity.GroupMember> userMemberships = groupMemberRepository.findByUserId(userId);
+        
+        for (com.chatapp.chatservice.entity.GroupMember membership : userMemberships) {
+            com.chatapp.chatservice.entity.ChatGroup group = membership.getChatGroup();
+            Long groupId = group.getId();
+            
+            // 1. Check karo ki delete hone wala user Admin/Creator tha ya nahi
+            boolean isCreator = group.getCreatedBy() != null && group.getCreatedBy().equals(userId);
+            String admins = group.getAdminIds() == null ? "" : group.getAdminIds();
+            boolean isPromotedAdmin = admins.contains("," + userId + ",");
+            
+            boolean wasAdmin = isCreator || isPromotedAdmin;
+            
+            // 2. User ko is group se Delete kar do (GroupMember table se)
+            groupMemberRepository.delete(membership);
+            
+            // 3. Agar wo user Admin tha, toh uska replacement dhundo
+            if (wasAdmin) {
+                // String mein se uska naam hata do
+                if (isPromotedAdmin) {
+                    admins = admins.replace("," + userId + ",", ",");
+                    if (admins.equals(",")) admins = "";
+                    group.setAdminIds(admins);
+                }
+                
+                // Baaki bache hue members dhundo (Jisme ye deleted user na ho)
+                List<com.chatapp.chatservice.entity.GroupMember> remainingMembers = groupMemberRepository.findByChatGroupId(groupId)
+                    .stream()
+                    .filter(m -> !m.getUser().getId().equals(userId))
+                    .collect(java.util.stream.Collectors.toList());
+                
+                if (!remainingMembers.isEmpty()) {
+                    // Check karo ki koi aur Admin zinda hai kya?
+                    long activeAdmins = 0;
+                    for (com.chatapp.chatservice.entity.GroupMember rm : remainingMembers) {
+                        boolean rmIsCreator = group.getCreatedBy() != null && group.getCreatedBy().equals(rm.getUser().getId());
+                        boolean rmIsPromoted = admins.contains("," + rm.getUser().getId() + ",");
+                        
+                        if ((rmIsCreator && !isCreator) || rmIsPromoted) {
+                            activeAdmins++;
+                        }
+                    }
+                    
+                    // Agar group bilkul admin-less (lawaris) ho gaya hai, toh naya admin banao
+                    if (activeAdmins == 0) {
+                        com.chatapp.chatservice.entity.GroupMember newAdminMember = remainingMembers.get(0); // Pehle member ko uthao
+                        Long newAdminId = newAdminMember.getUser().getId();
+                        
+                        if (isCreator) {
+                            group.setCreatedBy(newAdminId); // Usko group ka naya malik/creator bana do
+                        } else {
+                            if (admins.isEmpty()) admins = ",";
+                            admins += newAdminId + ",";
+                            group.setAdminIds(admins); // Usko promoted admin bana do
+                        }
+                        
+                        // Naye Admin ko frontend pe promote karo
+                        Map<String, Object> adminMsg = new HashMap<>();
+                        adminMsg.put("type", "ADMIN_PROMOTED");
+                        adminMsg.put("userId", newAdminId);
+                        adminMsg.put("roomId", "GROUP_" + groupId);
+                        messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, adminMsg);
+                    }
+                }
+                chatGroupRepository.save(group); // Naye admin ka data Group table mein save
+            }
+            
+            // 4. Frontend ko signal bhejo taaki Profile Panel me Participants Count live update ho (Bina System Msg ke)
+            Map<String, Object> removeMsg = new HashMap<>();
+            removeMsg.put("type", "MEMBER_REMOVED");
+            removeMsg.put("userId", userId);
+            removeMsg.put("roomId", "GROUP_" + groupId);
+            messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, removeMsg);
+        }
+    }
 }
