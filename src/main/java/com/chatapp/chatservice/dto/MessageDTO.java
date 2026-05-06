@@ -26,4 +26,5 @@ public class MessageDTO {
     private String fileType;
     private Long fileSize;
     private boolean isDeleted;
+    private Object replyTo; // Reply ke liye, agar message kisi aur message ka reply hai to uska content ya ID yahan aayega
 }

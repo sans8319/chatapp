@@ -69,8 +69,29 @@ public class GroupMessage {
     }
 
     @Column(name = "is_deleted")
-    private boolean isDeleted = false;
+    private Boolean isDeleted = false; // 🛑 NAYA: Capital B
     
-    public boolean isDeleted() { return isDeleted; }
+    public boolean isDeleted() { return isDeleted != null ? isDeleted : false; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
+
+    @Column(name = "reply_to_id")
+    private Long replyToId;
+    
+    @Column(name = "reply_to_name")
+    private String replyToName;
+    
+    @Column(name = "reply_to_content")
+    private String replyToContent;
+    
+    @Column(name = "reply_to_file_url")
+    private String replyToFileUrl;
+
+    public Long getReplyToId() { return replyToId; }
+    public void setReplyToId(Long replyToId) { this.replyToId = replyToId; }
+    public String getReplyToName() { return replyToName; }
+    public void setReplyToName(String replyToName) { this.replyToName = replyToName; }
+    public String getReplyToContent() { return replyToContent; }
+    public void setReplyToContent(String replyToContent) { this.replyToContent = replyToContent; }
+    public String getReplyToFileUrl() { return replyToFileUrl; }
+    public void setReplyToFileUrl(String replyToFileUrl) { this.replyToFileUrl = replyToFileUrl; }
 }

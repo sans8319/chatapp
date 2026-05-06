@@ -84,6 +84,15 @@ public class GroupMessageService {
                 msg.setSenderName((String) payload.getOrDefault("senderName", "Member"));
             }
 
+            // 🛑 NAYA: Frontend se Reply ka Data Extract karna
+            if (payload.containsKey("replyTo") && payload.get("replyTo") != null) {
+                Map<String, Object> replyMap = (Map<String, Object>) payload.get("replyTo");
+                if (replyMap.get("id") != null) msg.setReplyToId(((Number) replyMap.get("id")).longValue());
+                if (replyMap.get("senderName") != null) msg.setReplyToName((String) replyMap.get("senderName"));
+                if (replyMap.get("content") != null) msg.setReplyToContent((String) replyMap.get("content"));
+                if (replyMap.get("fileUrl") != null) msg.setReplyToFileUrl((String) replyMap.get("fileUrl"));
+            }
+
             GroupMessage savedMsg = groupMessageRepository.save(msg);
 
             Map<String, Object> responseMsg = new HashMap<>();
@@ -99,6 +108,16 @@ public class GroupMessageService {
             responseMsg.put("fileType", savedMsg.getFileType());
             responseMsg.put("fileSize", savedMsg.getFileSize());
             responseMsg.put("isDeleted", false);
+
+            // 🛑 NAYA: Real-time Websocket me Reply Data wapas bhejna
+            if (savedMsg.getReplyToId() != null) {
+                Map<String, Object> repMsg = new HashMap<>();
+                repMsg.put("id", savedMsg.getReplyToId());
+                repMsg.put("senderName", savedMsg.getReplyToName());
+                repMsg.put("content", savedMsg.getReplyToContent());
+                repMsg.put("fileUrl", savedMsg.getReplyToFileUrl());
+                responseMsg.put("replyTo", repMsg);
+            }
 
             messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, responseMsg);
 
@@ -127,6 +146,15 @@ public class GroupMessageService {
                     map.put("fileType", msg.getFileType());
                     map.put("fileSize", msg.getFileSize());
                     map.put("isDeleted", msg.isDeleted()); // 🛑 NAYA: Bhejo
+                    // 🛑 NAYA: Chat History load hote waqt Reply Map bhejna
+                    if (msg.getReplyToId() != null) {
+                        Map<String, Object> repMsg = new HashMap<>();
+                        repMsg.put("id", msg.getReplyToId());
+                        repMsg.put("senderName", msg.getReplyToName());
+                        repMsg.put("content", msg.getReplyToContent());
+                        repMsg.put("fileUrl", msg.getReplyToFileUrl());
+                        map.put("replyTo", repMsg);
+                    }
                     return map;
                 }).collect(Collectors.toList());
     }

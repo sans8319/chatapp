@@ -3,7 +3,7 @@ package com.chatapp.chatservice.controller;
 import com.chatapp.chatservice.dto.MessageDTO;
 import com.chatapp.chatservice.repository.MessageRepository;
 import com.chatapp.chatservice.entity.Message;
-import com.chatapp.chatservice.service.GroupMessageService; // NAYA IMPORT
+import com.chatapp.chatservice.service.GroupMessageService; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MessageController {
 
     private final MessageRepository messageRepository;
-    private final GroupMessageService groupMessageService; // NAYA INJECTION
+    private final GroupMessageService groupMessageService; 
     private final SimpMessagingTemplate messagingTemplate;
 
     // NAYA FIX: Long ko String kiya taaki 'GROUP_1' bhi read ho sake
@@ -40,7 +40,18 @@ public class MessageController {
                 .stream()
                 // NAYA MAGIC FILTER: Agar clearedBy mein is userId ka zikr hai, toh message list mein nahi aayega!
                 .filter(msg -> userId == null || msg.getClearedBy() == null || !msg.getClearedBy().contains("," + userId + ","))
-                .map(msg -> MessageDTO.builder()
+                .map(msg -> {
+                    // 🛑 NAYA MAGIC: Reply Object ko DTO ke liye taiyaar karna
+                    Map<String, Object> replyMap = null;
+                    if (msg.getReplyToId() != null) {
+                        replyMap = new HashMap<>();
+                        replyMap.put("id", msg.getReplyToId());
+                        replyMap.put("senderName", msg.getReplyToName());
+                        replyMap.put("content", msg.getReplyToContent());
+                        replyMap.put("fileUrl", msg.getReplyToFileUrl());
+                    }
+
+                    return MessageDTO.builder()
                         .id(msg.getId())
                         .content(msg.getContent())
                         .senderUsername(msg.getSender() != null ? msg.getSender().getUsername() : "Unknown")
@@ -54,16 +65,19 @@ public class MessageController {
                         .fileType(msg.getFileType())
                         .fileSize(msg.getFileSize())
                         .isDeleted(msg.isDeleted())
-                        .build())
+                        .replyTo(replyMap) // 🛑 NAYA: Mapper me add kar diya
+                        .build();
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(history);
     }
+    
     // ==========================================
     // NAYA: SIRF MEDIA AUR LINKS FETCH KARNE KE LIYE
     // ==========================================
     @GetMapping("/{roomId}/media")
-    public ResponseEntity<?> getRoomMedia(@PathVariable String roomId, @RequestParam(required = false) Long userId) { // NAYA: Yahan userId parameter add kiya
+    public ResponseEntity<?> getRoomMedia(@PathVariable String roomId, @RequestParam(required = false) Long userId) { 
         if (roomId != null && roomId.startsWith("GROUP_")) {
             Long groupId = Long.parseLong(roomId.substring(6));
             return ResponseEntity.ok(groupMessageService.getGroupMediaAndLinks(groupId, userId));

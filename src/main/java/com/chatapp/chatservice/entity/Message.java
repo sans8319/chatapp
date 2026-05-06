@@ -49,5 +49,25 @@ public class Message {
     }
 
     @Column(name = "is_deleted")
-    private boolean isDeleted = false;
+    private Boolean isDeleted = false; // 🛑 NAYA: 'boolean' ko 'Boolean' (Capital B) kar diya
+
+    public boolean isDeleted() {
+        return this.isDeleted != null ? this.isDeleted : false;
+    }
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+    }
+
+    
+    @Column(name = "reply_to_id")
+    private Long replyToId;
+    
+    @Column(name = "reply_to_name")
+    private String replyToName;
+    
+    @Column(name = "reply_to_content")
+    private String replyToContent;
+    
+    @Column(name = "reply_to_file_url")
+    private String replyToFileUrl;
 }

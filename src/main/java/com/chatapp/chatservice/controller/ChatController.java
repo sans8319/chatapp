@@ -6,8 +6,8 @@ import com.chatapp.chatservice.dto.MessageReceipt;
 import com.chatapp.chatservice.entity.Message;
 import com.chatapp.chatservice.entity.User;
 import com.chatapp.chatservice.repository.UserRepository;
-import com.chatapp.chatservice.service.GroupMessageService; // NAYA IMPORT
-import com.fasterxml.jackson.databind.ObjectMapper; // NAYA IMPORT (Safety ke liye)
+import com.chatapp.chatservice.service.GroupMessageService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,10 +25,9 @@ public class ChatController {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     
-    private final GroupMessageService groupMessageService; // NAYA INJECTION
-    private final ObjectMapper objectMapper; // NAYA INJECTION
+    private final GroupMessageService groupMessageService; 
+    private final ObjectMapper objectMapper; 
 
-    // NAYA FIX: Payload ko Map me liya taaki error na aaye
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload Map<String, Object> payload) {
         
@@ -46,11 +46,10 @@ public class ChatController {
         if (roomIdStr != null && roomIdStr.startsWith("GROUP_")) {
             Long groupId = Long.parseLong(roomIdStr.substring(6));
             groupMessageService.saveAndBroadcastMessage(groupId, payload);
-            return; // Group ka process khatam, yahi se wapas!
+            return; 
         }
 
-        // --- AAPKA PURANA 1-ON-1 LOGIC (As it is, 100% Safe) ---
-        // Payload ko wapas aapki 'Message' entity me daal diya taaki aapka code chalta rahe
+        // --- AAPKA PURANA 1-ON-1 LOGIC ---
         Message message = objectMapper.convertValue(payload, Message.class);
         
         message.setTimestamp(java.time.LocalDateTime.now());
@@ -61,8 +60,27 @@ public class ChatController {
             message.setSender(sender);
         }
 
+        // 🛑 NAYA: Frontend se Reply ka Data Extract karna (1-on-1 ke liye)
+        if (payload.containsKey("replyTo") && payload.get("replyTo") != null) {
+            Map<String, Object> replyMap = (Map<String, Object>) payload.get("replyTo");
+            if (replyMap.get("id") != null) message.setReplyToId(((Number) replyMap.get("id")).longValue());
+            if (replyMap.get("senderName") != null) message.setReplyToName((String) replyMap.get("senderName"));
+            if (replyMap.get("content") != null) message.setReplyToContent((String) replyMap.get("content"));
+            if (replyMap.get("fileUrl") != null) message.setReplyToFileUrl((String) replyMap.get("fileUrl"));
+        }
+
         Message savedMessage = messageRepository.save(message);
-        String roomId = message.getChatRoom().getId().toString();
+        String roomId = savedMessage.getChatRoom().getId().toString();
+
+        // 🛑 NAYA: Real-time Websocket me Reply Data wapas bhejna (1-on-1 ke liye)
+        Map<String, Object> repMsg = null;
+        if (savedMessage.getReplyToId() != null) {
+            repMsg = new HashMap<>();
+            repMsg.put("id", savedMessage.getReplyToId());
+            repMsg.put("senderName", savedMessage.getReplyToName());
+            repMsg.put("content", savedMessage.getReplyToContent());
+            repMsg.put("fileUrl", savedMessage.getReplyToFileUrl());
+        }
 
         MessageDTO dto = MessageDTO.builder()
                 .id(savedMessage.getId())
@@ -77,6 +95,8 @@ public class ChatController {
                 .fileName(savedMessage.getFileName())
                 .fileType(savedMessage.getFileType())
                 .fileSize(savedMessage.getFileSize())
+                .isDeleted(savedMessage.isDeleted()) // Optional fail-safe
+                .replyTo(repMsg) // 🛑 NAYA: Reply map attach kiya
                 .build();
 
         messagingTemplate.convertAndSend("/topic/room/" + roomId, dto);
