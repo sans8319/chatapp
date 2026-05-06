@@ -217,4 +217,27 @@ public class GroupService {
             messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
         } catch (Exception e) {}
     }
+
+    // ==========================================
+    // 🛑 NAYA: UPDATE GROUP PERMISSIONS REAL-TIME
+    // ==========================================
+    @Transactional
+    public void updateGroupPermissions(Long groupId, String permissions) {
+        ChatGroup group = groupRepository.findById(groupId).orElseThrow();
+        group.setPermissions(permissions);
+        groupRepository.save(group);
+
+        // Real-time WebSocket signal bhejo saare users ko
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "GROUP_SETTINGS_UPDATED");
+        wsMsg.put("groupId", groupId);
+        wsMsg.put("permissions", permissions);
+        wsMsg.put("roomId", "GROUP_" + groupId);
+        
+        try {
+            messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
+        } catch (Exception e) {
+            System.err.println("Permission broadcast failed: " + e.getMessage());
+        }
+    }
 }

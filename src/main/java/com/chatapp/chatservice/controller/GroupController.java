@@ -69,4 +69,12 @@ public class GroupController {
         groupService.dismissAdmin(groupId, userId);
         return ResponseEntity.ok(Map.of("message", "Dismissed as Admin"));
     }
+
+    // 🛑 NAYA: Group Settings Endpoint
+    @PutMapping("/{groupId}/permissions")
+    public org.springframework.http.ResponseEntity<?> updatePermissions(@PathVariable Long groupId, @RequestBody java.util.Map<String, String> payload) {
+        String permissions = payload.get("permissions");
+        groupService.updateGroupPermissions(groupId, permissions);
+        return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "permissions", permissions));
+    }
 }
