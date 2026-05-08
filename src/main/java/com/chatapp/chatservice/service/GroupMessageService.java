@@ -347,4 +347,12 @@ public class GroupMessageService {
         groupMessageRepository.save(msg);
         return newStatus;
     }
+
+    // ==========================================
+    // 🛑 NAYA: GROUP DELETE HONE PAR SAARE MESSAGES SAAF KARNA
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteAllMessagesOfGroup(Long groupId) {
+        groupMessageRepository.deleteByGroupId(groupId);
+    }
 }

@@ -77,4 +77,11 @@ public class GroupController {
         groupService.updateGroupPermissions(groupId, permissions);
         return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "permissions", permissions));
     }
+
+    // 🛑 NAYA: Delete Group API
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<?> deleteGroup(@PathVariable Long groupId) {
+        groupService.deleteGroup(groupId);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Group deleted successfully"));
+    }
 }

@@ -5,6 +5,7 @@ import com.chatapp.chatservice.entity.ChatGroup;
 import com.chatapp.chatservice.entity.GroupMember;
 import com.chatapp.chatservice.entity.User;
 import com.chatapp.chatservice.repository.ChatGroupRepository;
+import com.chatapp.chatservice.repository.GroupMessageRepository;
 import com.chatapp.chatservice.repository.GroupMemberRepository;
 import com.chatapp.chatservice.repository.UserRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,12 +26,15 @@ public class GroupService {
     private final SimpMessagingTemplate messagingTemplate;
     private final GroupMessageService groupMessageService;
 
-    public GroupService(ChatGroupRepository groupRepository, GroupMemberRepository groupMemberRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, GroupMessageService groupMessageService) {
+    private final GroupMessageRepository groupMessageRepository;
+
+    public GroupService(ChatGroupRepository groupRepository, GroupMemberRepository groupMemberRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate, GroupMessageService groupMessageService, GroupMessageRepository groupMessageRepository) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.userRepository = userRepository;
         this.messagingTemplate = messagingTemplate;
         this.groupMessageService = groupMessageService;
+        this.groupMessageRepository = groupMessageRepository;
     }
 
     @Transactional
@@ -239,5 +243,27 @@ public class GroupService {
         } catch (Exception e) {
             System.err.println("Permission broadcast failed: " + e.getMessage());
         }
+    }
+
+   // ==========================================
+    // 🛑 NAYA: DELETE GROUP & BROADCAST
+    // ==========================================
+    @Transactional
+    public void deleteGroup(Long groupId) {
+        // 1. Pehle sabhi ko signal bhej do taaki group real-time me screen se hat jaye
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "GROUP_DELETED");
+        wsMsg.put("groupId", groupId);
+        wsMsg.put("roomId", "GROUP_" + groupId);
+        
+        try {
+            messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, wsMsg);
+            messagingTemplate.convertAndSend("/topic/public/updates", wsMsg);
+        } catch (Exception e) {}
+
+        // 2. Database se sab kuch line se saaf karo (Pehle messages, fir members, aakhir me group)
+        groupMessageService.deleteAllMessagesOfGroup(groupId); // Messages saaf
+        groupMemberRepository.deleteByGroupId(groupId);        // Members saaf
+        groupRepository.deleteById(groupId);                   // Group saaf
     }
 }
