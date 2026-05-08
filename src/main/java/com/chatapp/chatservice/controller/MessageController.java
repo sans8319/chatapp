@@ -65,6 +65,7 @@ public class MessageController {
                         .fileType(msg.getFileType())
                         .fileSize(msg.getFileSize())
                         .isDeleted(msg.isDeleted())
+                        .isPinned(msg.isPinned())
                         .replyTo(replyMap) // 🛑 NAYA: Mapper me add kar diya
                         .build();
                 })
@@ -176,6 +177,7 @@ public class MessageController {
             msg.setFileName(null);
             msg.setFileType(null);
             msg.setFileSize(null);
+            msg.setPinned(false);
             messageRepository.save(msg);
 
             // Real-time WebSocket signal sabko bhejo
@@ -188,5 +190,34 @@ public class MessageController {
         }
 
         return ResponseEntity.ok(Map.of("success", true, "message", "Deleted for everyone"));
+    }
+
+    // ==========================================
+    // 🛑 NAYA: TOGGLE PIN MESSAGE API
+    // ==========================================
+    @PutMapping("/{messageId}/pin")
+    public ResponseEntity<?> pinMessage(@PathVariable Long messageId, @RequestParam String roomId) {
+        boolean newPinStatus = false;
+        
+        if (roomId.startsWith("GROUP_")) {
+            Long groupId = Long.parseLong(roomId.substring(6));
+            newPinStatus = groupMessageService.togglePinGroupMessage(messageId, groupId);
+        } else {
+            Message msg = messageRepository.findById(messageId).orElseThrow(() -> new RuntimeException("Message not found"));
+            newPinStatus = !msg.isPinned();
+            msg.setPinned(newPinStatus);
+            messageRepository.save(msg);
+        }
+
+        // Real-time WebSocket signal sabko bhejo
+        Map<String, Object> wsMsg = new HashMap<>();
+        wsMsg.put("type", "MESSAGE_PINNED");
+        wsMsg.put("messageId", messageId);
+        wsMsg.put("roomId", roomId);
+        wsMsg.put("isPinned", newPinStatus);
+        
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, wsMsg);
+
+        return ResponseEntity.ok(Map.of("success", true, "isPinned", newPinStatus));
     }
 }

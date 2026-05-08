@@ -94,4 +94,11 @@ public class GroupMessage {
     public void setReplyToContent(String replyToContent) { this.replyToContent = replyToContent; }
     public String getReplyToFileUrl() { return replyToFileUrl; }
     public void setReplyToFileUrl(String replyToFileUrl) { this.replyToFileUrl = replyToFileUrl; }
+
+
+    @Column(name = "is_pinned")
+    private Boolean isPinned = false;
+
+    public boolean isPinned() { return this.isPinned != null ? this.isPinned : false; }
+    public void setPinned(boolean pinned) { this.isPinned = pinned; }
 }

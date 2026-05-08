@@ -70,4 +70,11 @@ public class Message {
     
     @Column(name = "reply_to_file_url")
     private String replyToFileUrl;
+
+   
+    @Column(name = "is_pinned")
+    private Boolean isPinned = false;
+
+    public boolean isPinned() { return this.isPinned != null ? this.isPinned : false; }
+    public void setPinned(boolean pinned) { this.isPinned = pinned; }
 }

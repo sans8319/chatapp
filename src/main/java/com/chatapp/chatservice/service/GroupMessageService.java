@@ -108,6 +108,7 @@ public class GroupMessageService {
             responseMsg.put("fileType", savedMsg.getFileType());
             responseMsg.put("fileSize", savedMsg.getFileSize());
             responseMsg.put("isDeleted", false);
+            responseMsg.put("isPinned", false);
 
             // 🛑 NAYA: Real-time Websocket me Reply Data wapas bhejna
             if (savedMsg.getReplyToId() != null) {
@@ -145,8 +146,8 @@ public class GroupMessageService {
                     map.put("fileName", msg.getFileName());
                     map.put("fileType", msg.getFileType());
                     map.put("fileSize", msg.getFileSize());
-                    map.put("isDeleted", msg.isDeleted()); // 🛑 NAYA: Bhejo
-                    // 🛑 NAYA: Chat History load hote waqt Reply Map bhejna
+                    map.put("isDeleted", msg.isDeleted()); 
+                    map.put("isPinned", msg.isPinned()); 
                     if (msg.getReplyToId() != null) {
                         Map<String, Object> repMsg = new HashMap<>();
                         repMsg.put("id", msg.getReplyToId());
@@ -240,6 +241,7 @@ public class GroupMessageService {
         msg.setFileName(null);
         msg.setFileType(null);
         msg.setFileSize(null);
+        msg.setPinned(false);
         groupMessageRepository.save(msg);
 
         // Real-time broadcast karo
@@ -330,5 +332,19 @@ public class GroupMessageService {
             removeMsg.put("roomId", "GROUP_" + groupId);
             messagingTemplate.convertAndSend("/topic/room/GROUP_" + groupId, removeMsg);
         }
+    }
+
+    // ==========================================
+    // 🛑 NAYA: TOGGLE PIN FOR GROUP MESSAGES
+    // ==========================================
+    @org.springframework.transaction.annotation.Transactional
+    public boolean togglePinGroupMessage(Long messageId, Long groupId) {
+        GroupMessage msg = groupMessageRepository.findById(messageId)
+            .orElseThrow(() -> new RuntimeException("Group message not found"));
+            
+        boolean newStatus = !msg.isPinned();
+        msg.setPinned(newStatus);
+        groupMessageRepository.save(msg);
+        return newStatus;
     }
 }

@@ -95,8 +95,9 @@ public class ChatController {
                 .fileName(savedMessage.getFileName())
                 .fileType(savedMessage.getFileType())
                 .fileSize(savedMessage.getFileSize())
-                .isDeleted(savedMessage.isDeleted()) // Optional fail-safe
-                .replyTo(repMsg) // 🛑 NAYA: Reply map attach kiya
+                .isDeleted(savedMessage.isDeleted()) 
+                .isPinned(savedMessage.isPinned())
+                .replyTo(repMsg) 
                 .build();
 
         messagingTemplate.convertAndSend("/topic/room/" + roomId, dto);
