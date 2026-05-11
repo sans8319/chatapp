@@ -27,6 +27,7 @@ public class PollController {
         
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
             Poll poll = mapper.readValue(pollDataJson, Poll.class);
             List<PollOption> options = poll.getOptions();
             

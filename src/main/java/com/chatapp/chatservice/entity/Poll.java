@@ -53,4 +53,6 @@ public class Poll {
     // Poll options ke sath connection
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PollOption> options = new ArrayList<>();
+
+    private LocalDateTime expiryDate;
 }
