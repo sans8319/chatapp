@@ -2,6 +2,8 @@ package com.chatapp.chatservice.repository;
 
 import com.chatapp.chatservice.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.Optional;
 import java.util.List;
 
@@ -10,4 +12,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     // Search users by username (for starting new chats)
     List<User> findByUsernameContainingIgnoreCase(String username);
+
+
+    @Query("SELECT DISTINCT u.department FROM User u WHERE u.department IS NOT NULL AND u.department <> ''")
+    List<String> findDistinctDepartments();
 }

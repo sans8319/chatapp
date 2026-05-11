@@ -142,6 +142,14 @@ public class UserController {
 
             userRepository.save(user);
             groupMessageService.removeDeletedUserFromAllGroups(id);
+
+            try {
+                messagingTemplate.convertAndSend("/topic/public/updates", 
+                    Map.of("type", "USER_DELETED", "userId", id));
+            } catch (Exception e) {
+                System.err.println("Notification failed: " + e.getMessage());
+            }
+
             return ResponseEntity.ok("Account deleted successfully.");
             
         }).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found"));
@@ -170,5 +178,12 @@ public class UserController {
         userRepository.save(user);
         
         return ResponseEntity.ok(java.util.Map.of("pinnedRooms", pinned));
+    }
+
+    // UserController.java mein ye endpoint add karein
+    @GetMapping("/departments")
+    public ResponseEntity<List<String>> getAllDepartments() {
+        List<String> departments = userRepository.findDistinctDepartments();
+        return ResponseEntity.ok(departments);
     }
 }
