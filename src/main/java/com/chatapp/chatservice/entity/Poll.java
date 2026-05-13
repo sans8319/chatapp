@@ -33,12 +33,14 @@ public class Poll {
     private String visibility; 
 
     // Agar audience 'department' hai, toh unki list
+    @Builder.Default
     @ElementCollection
     @CollectionTable(name = "poll_target_departments", joinColumns = @JoinColumn(name = "poll_id"))
     @Column(name = "department_name")
     private List<String> targetDepartments = new ArrayList<>();
 
     // Agar audience 'specific' hai, toh un users ki IDs
+    @Builder.Default
     @ElementCollection
     @CollectionTable(name = "poll_target_users", joinColumns = @JoinColumn(name = "poll_id"))
     @Column(name = "user_id")
@@ -47,12 +49,24 @@ public class Poll {
     private Long createdBy; // Jisne poll banaya
     
     private LocalDateTime createdAt;
-    
+    @Builder.Default
     private boolean isActive = true;
 
     // Poll options ke sath connection
+    @Builder.Default
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PollOption> options = new ArrayList<>();
 
     private LocalDateTime expiryDate;
+
+    @Transient // Isse database mein column nahi banega
+    private String createdByUsername;
+
+    @Transient
+    private boolean userVoted;
+
+    @Transient
+    private List<PollResponse> votes; // Sirf tab bhejenge jab visibility 'public' ho
+
+    
 }

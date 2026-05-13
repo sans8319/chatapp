@@ -32,4 +32,10 @@ public class PollOption {
     @JoinColumn(name = "poll_id", nullable = false)
     @JsonIgnore // Infinite loop se bachane ke liye
     private Poll poll;
+
+    @Transient
+    private long voteCount; // Is option par kitne vote aaye hain
+
+    @Transient
+    private boolean isUserChoice; // Kya is user ne ye chuna tha
 }

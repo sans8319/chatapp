@@ -56,6 +56,7 @@ public class User {
     private String countryCode;
 
     // --- ADD THIS BLOCK IN User.java ---
+    @Builder.Default
     @jakarta.persistence.Column(columnDefinition = "varchar(500) default ''")
     private String pinnedRooms = "";
 
