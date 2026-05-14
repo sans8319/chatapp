@@ -20,6 +20,7 @@ public interface PollRepository extends JpaRepository<Poll, Long> {
         "WHERE p.targetedAudience = 'all' " +
         "OR (p.targetedAudience = 'department' AND td = :dept) " +
         "OR (p.targetedAudience = 'specific' AND tu = :userId) " +
+        "OR p.createdBy = :userId " + // 🛑 BUG FIX: Creator ke polls bhi lao
         "ORDER BY p.createdAt DESC")
     List<Poll> findVisiblePolls(@Param("dept") String dept, @Param("userId") Long userId);
 }

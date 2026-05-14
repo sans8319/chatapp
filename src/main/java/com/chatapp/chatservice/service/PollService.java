@@ -43,6 +43,11 @@ public class PollService {
             Optional<PollResponse> userResponseOpt = responseRepository.findByPollIdAndUserId(p.getId(), userId);
             p.setUserVoted(userResponseOpt.isPresent());
 
+            boolean targeted = p.getTargetedAudience().equals("all") ||
+                    (p.getTargetedAudience().equals("department") && p.getTargetDepartments().contains(dept)) ||
+                    (p.getTargetedAudience().equals("specific") && p.getTargetUsers().contains(userId));
+            p.setTargetedForUser(targeted);
+
             List<Long> userSelectedOptions = userResponseOpt.isPresent() ? userResponseOpt.get().getSelectedOptionIds() : java.util.Collections.emptyList();
 
             if (p.getOptions() != null) {

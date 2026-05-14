@@ -67,6 +67,8 @@ public class Poll {
 
     @Transient
     private List<PollResponse> votes; // Sirf tab bhejenge jab visibility 'public' ho
-
+   
+    @Transient
+    private boolean isTargetedForUser;
     
 }
