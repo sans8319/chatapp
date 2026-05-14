@@ -58,6 +58,7 @@ C:.
 |   |   |               |       GroupMessage.java
 |   |   |               |       Message.java
 |   |   |               |       Poll.java
+|   |   |               |       PollComment.java
 |   |   |               |       PollOption.java
 |   |   |               |       PollResponse.java
 |   |   |               |       User.java
@@ -68,6 +69,7 @@ C:.
 |   |   |               |       GroupMemberRepository.java
 |   |   |               |       GroupMessageRepository.java
 |   |   |               |       MessageRepository.java
+|   |   |               |       PollCommentRepository.java
 |   |   |               |       PollOptionRepository.java
 |   |   |               |       PollRepository.java
 |   |   |               |       PollResponseRepository.java
@@ -144,6 +146,8 @@ C:.
 |   |               |       Message.class
 |   |               |       Poll$PollBuilder.class
 |   |               |       Poll.class
+|   |               |       PollComment$PollCommentBuilder.class
+|   |               |       PollComment.class
 |   |               |       PollOption$PollOptionBuilder.class
 |   |               |       PollOption.class
 |   |               |       PollResponse.class
@@ -156,6 +160,7 @@ C:.
 |   |               |       GroupMemberRepository.class
 |   |               |       GroupMessageRepository.class
 |   |               |       MessageRepository.class
+|   |               |       PollCommentRepository.class
 |   |               |       PollOptionRepository.class
 |   |               |       PollRepository.class
 |   |               |       PollResponseRepository.class
