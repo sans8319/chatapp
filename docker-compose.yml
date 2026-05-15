@@ -22,6 +22,18 @@ services:
     volumes:
       - redis_data:/data
 
+  # 🛑 NAYA: Backend Service
+  backend:
+    build: .  # Ye current folder (chat-service) ki Dockerfile use karega
+    container_name: chat-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./uploads:/app/uploads # Upload ki hui files ko safe rakhne ke liye
+
 volumes:
   postgres_data:
   redis_data:
