@@ -5,11 +5,11 @@ C:.
 |   .gitignore
 |   backend_structure.txt
 |   docker-compose.yml
+|   Dockerfile
 |   HELP.md
 |   mvnw
 |   mvnw.cmd
 |   pom.xml
-|   structure_backend.txt
 |   
 +---.mvn
 |   \---wrapper
@@ -33,15 +33,18 @@ C:.
 |   |   |               |       WebSocketConfig.java
 |   |   |               |       
 |   |   |               +---controller
+|   |   |               |       AnnouncementController.java
 |   |   |               |       AuthController.java
 |   |   |               |       ChatController.java
 |   |   |               |       FileController.java
 |   |   |               |       GroupController.java
 |   |   |               |       MessageController.java
+|   |   |               |       PollController.java
 |   |   |               |       RoomController.java
 |   |   |               |       UserController.java
 |   |   |               |       
 |   |   |               +---dto
+|   |   |               |       AnnouncementRequestDTO.java
 |   |   |               |       AuthRequest.java
 |   |   |               |       AuthResponse.java
 |   |   |               |       GroupCreateRequest.java
@@ -51,19 +54,30 @@ C:.
 |   |   |               |       UserProfileDTO.java
 |   |   |               |       
 |   |   |               +---entity
+|   |   |               |       Announcement.java
+|   |   |               |       AnnouncementAttachment.java
 |   |   |               |       ChatGroup.java
 |   |   |               |       ChatRoom.java
 |   |   |               |       GroupMember.java
 |   |   |               |       GroupMessage.java
 |   |   |               |       Message.java
+|   |   |               |       Poll.java
+|   |   |               |       PollComment.java
+|   |   |               |       PollOption.java
+|   |   |               |       PollResponse.java
 |   |   |               |       User.java
 |   |   |               |       
 |   |   |               +---repository
+|   |   |               |       AnnouncementRepository.java
 |   |   |               |       ChatGroupRepository.java
 |   |   |               |       ChatRoomRepository.java
 |   |   |               |       GroupMemberRepository.java
 |   |   |               |       GroupMessageRepository.java
 |   |   |               |       MessageRepository.java
+|   |   |               |       PollCommentRepository.java
+|   |   |               |       PollOptionRepository.java
+|   |   |               |       PollRepository.java
+|   |   |               |       PollResponseRepository.java
 |   |   |               |       UserRepository.java
 |   |   |               |       
 |   |   |               +---security
@@ -71,9 +85,11 @@ C:.
 |   |   |               |       JwtProvider.java
 |   |   |               |       
 |   |   |               \---service
+|   |   |                       AnnouncementService.java
 |   |   |                       AuthService.java
 |   |   |                       GroupMessageService.java
 |   |   |                       GroupService.java
+|   |   |                       PollService.java
 |   |   |                       PresenceService.java
 |   |   |                       RedisPublisher.java
 |   |   |                       
@@ -90,6 +106,9 @@ C:.
 |                           ChatServiceApplicationTests.java
 |                           
 +---target
+|   |   chat-service-0.0.1-SNAPSHOT.jar
+|   |   chat-service-0.0.1-SNAPSHOT.jar.original
+|   |   
 |   +---classes
 |   |   |   application.yml
 |   |   |   
@@ -105,15 +124,19 @@ C:.
 |   |               |       WebSocketConfig.class
 |   |               |       
 |   |               +---controller
+|   |               |       AnnouncementController.class
 |   |               |       AuthController.class
 |   |               |       ChatController.class
 |   |               |       FileController.class
 |   |               |       GroupController.class
 |   |               |       MessageController.class
+|   |               |       PollController.class
 |   |               |       RoomController.class
 |   |               |       UserController.class
 |   |               |       
 |   |               +---dto
+|   |               |       AnnouncementRequestDTO$AttachmentInfo.class
+|   |               |       AnnouncementRequestDTO.class
 |   |               |       AuthRequest.class
 |   |               |       AuthResponse$AuthResponseBuilder.class
 |   |               |       AuthResponse.class
@@ -126,6 +149,10 @@ C:.
 |   |               |       UserProfileDTO.class
 |   |               |       
 |   |               +---entity
+|   |               |       Announcement$AnnouncementBuilder.class
+|   |               |       Announcement.class
+|   |               |       AnnouncementAttachment$AnnouncementAttachmentBuilder.class
+|   |               |       AnnouncementAttachment.class
 |   |               |       ChatGroup.class
 |   |               |       ChatRoom$ChatRoomBuilder.class
 |   |               |       ChatRoom.class
@@ -133,15 +160,27 @@ C:.
 |   |               |       GroupMessage.class
 |   |               |       Message$MessageBuilder.class
 |   |               |       Message.class
+|   |               |       Poll$PollBuilder.class
+|   |               |       Poll.class
+|   |               |       PollComment$PollCommentBuilder.class
+|   |               |       PollComment.class
+|   |               |       PollOption$PollOptionBuilder.class
+|   |               |       PollOption.class
+|   |               |       PollResponse.class
 |   |               |       User$UserBuilder.class
 |   |               |       User.class
 |   |               |       
 |   |               +---repository
+|   |               |       AnnouncementRepository.class
 |   |               |       ChatGroupRepository.class
 |   |               |       ChatRoomRepository.class
 |   |               |       GroupMemberRepository.class
 |   |               |       GroupMessageRepository.class
 |   |               |       MessageRepository.class
+|   |               |       PollCommentRepository.class
+|   |               |       PollOptionRepository.class
+|   |               |       PollRepository.class
+|   |               |       PollResponseRepository.class
 |   |               |       UserRepository.class
 |   |               |       
 |   |               +---security
@@ -149,9 +188,11 @@ C:.
 |   |               |       JwtProvider.class
 |   |               |       
 |   |               \---service
+|   |                       AnnouncementService.class
 |   |                       AuthService.class
 |   |                       GroupMessageService.class
 |   |                       GroupService.class
+|   |                       PollService.class
 |   |                       PresenceService.class
 |   |                       RedisPublisher.class
 |   |                       
@@ -159,6 +200,9 @@ C:.
 |   |   \---annotations
 |   +---generated-test-sources
 |   |   \---test-annotations
+|   +---maven-archiver
+|   |       pom.properties
+|   |       
 |   +---maven-status
 |   |   \---maven-compiler-plugin
 |   |       +---compile
@@ -184,11 +228,13 @@ C:.
             03219227-d55d-4b8d-9b1b-dac4239a8626_Screenshot 2026-04-23 105013.png
             03db4cc5-31df-4d02-a6f7-df7bd67f1a35_Screenshot 2026-04-23 105013.png
             0688e087-f386-4e07-be88-041746df2429_change ip.txt
+            07996ea2-4d05-4a06-be2f-78005f206c99_poll.png
             07c21573-0f9b-4b41-80cc-3c077e20265e_Sanskriti_Gupta_Resume.pdf
             0992307d-0897-442d-84ce-0bd54b281aef_Screenshot 2026-04-22 133810.png
             0e9534eb-2fc5-4e18-ba8b-24e33791987b_Screenshot 2026-04-25 121337.png
             11bcb578-d15f-49f7-bc0d-bc655cb869d4_orderbooking.txt
             126ce503-a67d-4ac6-acbe-6014df838f5a_homee.png
+            15667025-d010-48ac-8b47-64ca42578e39_poll.png
             1e616b14-be07-4180-a5c6-1f9eeae5b564_1749892671218-370531104-Screenshot 2025-05-08 172901.png
             2107dbcc-bfe9-493d-a33f-97a86be3df25_WhatsApp Image 2025-04-24 at 16.08.41.jpeg
             219e378e-4881-4672-b506-fba01b6ac999_cpp.txt
@@ -198,17 +244,24 @@ C:.
             33a88e85-d88b-417f-984e-d707ba81b281_ChatGPT Image Apr 29, 2026, 04_49_03 PM.png
             33ed6f6a-e5f6-42dd-9801-a0a3058ab640_flow.svg
             356913e4-7e1e-4bff-a941-5cbbc8b5c483_corporate-chat (1).zip
+            369c1477-934e-4493-a578-4f88d1d34e99_Screenshot 2026-05-12 170109.png
             381c82fe-f805-4a71-8c68-cbf8f2888995_Notification App Doc _w3-d3-s3_v1.0.0_1CDBJBF.docx
             38392a16-186d-46c7-bf9a-802ec7ce6cf0_MY_PHOTO.jpg
             3931c9f4-adee-4bd8-98ba-a1d9e9fd8020_Screenshot 2026-04-22 133810.png
+            3b147622-377a-4040-9ac4-bc581a41141e_corporate-chat (2).zip
             3bded8e0-ea1e-4740-997e-836862d3e737_deadline_10102013.png
             3e1f367a-a8b5-4f93-8755-9de3b05318be_W2-D5-S3_v1.0.0_1BDBJBF.docx
             3ea943e3-7026-4f99-8363-7bbb78541746_Screenshot 2026-04-23 144649.png
             420aedf7-21fa-4e7f-83e0-51841d4a6c19_Screenshot 2026-04-22 133810.png
             44553c60-8cd3-40c5-9bc3-99f8e2879512_deadline_10102013.png
+            44f19544-a4c1-4bdc-b630-5ce70832cab0_W2-D2-S1.pptx
+            459fbda6-dc29-41b1-96ff-b17bcec37858_Gemini_Generated_Image_4v28dk4v28dk4v28.png
             4ad0526f-78ad-48e4-a2b4-cdf29b2e2e5f_WhatsApp Image 2025-04-24 at 16.08.41.jpeg
+            4c993c69-7e4e-4280-a068-e0897d82c17d_BrainLink_Workflow (1).docx
             4d0063a8-e886-4071-a793-b303879e1fe1_AndroidTrainingPlan_v2.1 (2) (1).xlsx
             4f99b587-1133-4365-a15a-871467592062_icon-blood bank.png
+            50e644c6-82e6-4089-adf1-f3f20bbe0b89_AOSP Build Automation Dashboard.pdf
+            52ef84f0-88d4-479e-aa2b-b1ca63e2d093_Screenshot 2026-05-11 123521.png
             537671ec-d167-4d15-904d-bedd3a8b7140_Screenshot 2026-04-23 115833.png
             563d42e5-f4f8-4286-a1f5-acc44dab4939_WSR format - siksha rathore.xlsx
             569c4452-9749-477f-b07e-b0383e92a86a_chat.png
@@ -229,6 +282,7 @@ C:.
             797c69ab-92d4-49bc-9842-72f4afa2bd8f_Conspicuous (2).png
             7cef3239-136b-4b20-9c0e-de12abca42d6_W2-D5-S3_v1.0.0_1BDBJBF.docx
             7d97b001-969a-45aa-b1b4-c812d9c9860c_change ip.txt
+            7e2c05e7-bf33-44c3-9ff1-97b27fa16e54_TILTAP.docx
             813ec400-187c-4eea-8cd1-22a287b550b6_icon-nurse.png
             837a6719-a266-47ae-bd1c-612f43edc3b0_Live chatbot.gif
             8468845b-4519-4d7a-bfa1-30a5dc0df932_promotion_8629358.png
@@ -236,18 +290,25 @@ C:.
             87c0c901-8fff-4d5b-8c40-c2e0f77f9dbe_Screenshot 2026-04-25 121337.png
             8b2344bf-e8d8-48c8-8d26-bfa4869eaa8f_WhatsApp Image 2024-10-02 at 09.02.43_92665ca9.jpg
             8b56268f-5dd2-4990-839d-5337beccdd22_ChatGPT Image Apr 24, 2026, 05_15_26 PM.png
+            9795429b-ab8f-4726-8be1-109011ac569b_WhatsApp Image 2026-05-02 at 16.56.23.jpeg
             a6622bd6-81e4-4d53-a614-71d5f26d019a_Screenshot 2026-04-28 103015.png
             a69a0b36-5957-4040-b91f-13ef1f491c54_faq_17610729.png
+            a9236e4a-a0e7-47e8-b4e6-1d8656b521b5_poll (1).png
             ac4dcaec-b4ae-48db-90de-30360c56f493_Electrician 1.jpeg
+            ac7577ab-d2b6-46f1-bb55-86bf7cde9215_poll.png
             ac7b20c7-5671-4291-b803-28b68934ea54_ChatGPT Image Apr 17, 2026, 10_53_16 AM.png
+            b05eb6f8-0eaa-4018-b0f2-756f63bd67e6_poll.png
             b4c4b57f-1bbc-4ec4-9b36-afe275629ada_shedule_11910747.png
             b4cc13df-9ceb-4501-8d80-36ce63f58c5b_laundary-removebg-preview.png
             b8a090c1-1d2b-41e0-b22c-2e9088ce6c0c_exhaust fan.png
             b8d8e624-e231-49d1-8d41-95ea8e4844f6_Screenshot 2026-04-28 174552.png
+            bd697865-1878-4617-a535-ac9332dbe75b_corporate-chat.zip
             be6b30f1-4d41-49a2-b2b3-faa5191c814a_Screenshot 2026-04-25 135352.png
             bfece695-fb6b-4e48-a799-133f606495b7_WSR format - siksha rathore.xlsx
             c497a9aa-a606-4fc7-8a59-07aef57e359f_cpp.txt
             c9cc8f33-3f18-44f8-8c9d-0e7f70ec9553_final-main-game.docx
+            cb8f03bf-249f-4525-8f6b-ccd65c551c81_C++ PRESENTATION.pdf
+            d0e23793-be32-44bb-b6e4-e2e902cd6e8e_Screenshot 2026-05-11 152319.png
             d36a2811-6995-411e-acb9-a82573e4beeb_SORA documentation.docx
             d798ef13-122f-44e4-8e0f-20d6cefae288_Screenshot 2026-04-28 174651.png
             dce35a01-23d5-4294-a0dc-6b378b6a0fa5_W2-D5-S3_v1.0.0_1BDBJBF.docx
@@ -256,8 +317,10 @@ C:.
             e803322e-58a2-4bcb-85a0-5d50bab3d775_SORA documentation.docx
             ea1a0ac0-9656-48db-b50f-1b3ff2f322fa_Screenshot 2026-04-25 121337.png
             f0cb1768-6503-4395-bbcf-406ada5e75c4_ChatGPT Image Apr 17, 2026, 10_53_16 AM.png
+            f173bdeb-e3f3-44b7-8d91-0591baa357e4_corporate-chat (1).zip
             f24f986a-ed9a-4e53-b9f4-4ffbec12b651_CS logo.png
             f7d21713-e77e-4390-bf02-594c64fe58b5_Screenshot 2026-04-25 121723.png
             facc6f53-883e-492e-ba0f-81559135b780_ChatGPT Image Apr 23, 2026, 06_26_05 PM.png
             fed08b78-ab5c-490a-b017-d85802804b75_C-Classes (1).pdf
+            ff1f575d-da9e-4806-bd0e-b7439b415ae7_RESEARCH JOURNAL WEBSITE .docx
             

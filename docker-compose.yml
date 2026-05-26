@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: chatapp
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+      TZ: Asia/Kolkata  # 🛑 NAYA FIX: Database ab IST time use karega
     ports:
       - "5432:5432"
     volumes:
@@ -16,6 +17,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: chat-redis
+    environment:
+      TZ: Asia/Kolkata  # 🛑 NAYA FIX: Redis time in IST
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
@@ -31,6 +34,13 @@ services:
     depends_on:
       - postgres
       - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chatapp
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      TZ: Asia/Kolkata  # 🛑 NAYA FIX: Backend (Java) ab IST time use karega
     volumes:
       - ./uploads:/app/uploads # Upload ki hui files ko safe rakhne ke liye
 

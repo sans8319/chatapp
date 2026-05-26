@@ -11,6 +11,7 @@ import java.util.List;
 
 @Repository
 public interface PollRepository extends JpaRepository<Poll, Long> {
+    void deleteById(Long id);
     
     List<Poll> findAllByIsActiveTrueAndExpiryDateAfterOrderByCreatedAtDesc(LocalDateTime now);
 

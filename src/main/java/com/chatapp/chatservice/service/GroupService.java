@@ -152,12 +152,12 @@ public class GroupService {
                     member.setUser(user);
                     groupMemberRepository.save(member);
 
-                    Map<String, Object> sysPayload = new HashMap<>();
-                    sysPayload.put("content", adderName + " added " + user.getUsername() + ".");
-                    sysPayload.put("senderId", addedById);
-                    sysPayload.put("senderName", "System");
-                    sysPayload.put("roomId", "GROUP_" + groupId);
-                    groupMessageService.saveAndBroadcastMessage(groupId, sysPayload);
+                    // Map<String, Object> sysPayload = new HashMap<>();
+                    // sysPayload.put("content", adderName + " added " + user.getUsername() + ".");
+                    // sysPayload.put("senderId", addedById);
+                    // sysPayload.put("senderName", "System");
+                    // sysPayload.put("roomId", "GROUP_" + groupId);
+                    // groupMessageService.saveAndBroadcastMessage(groupId, sysPayload);
 
                     Map<String, String> notification = new HashMap<>();
                     notification.put("type", "NEW_GROUP");

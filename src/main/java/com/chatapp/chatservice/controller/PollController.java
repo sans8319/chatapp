@@ -91,4 +91,17 @@ public class PollController {
             return ResponseEntity.internalServerError().body("An error occurred while voting");
         }
     }
+
+    @DeleteMapping("/{pollId}")
+    public ResponseEntity<?> deletePoll(@PathVariable Long pollId) {
+        try {
+            System.out.println("🗑️ Deleting poll with ID: " + pollId);
+            pollService.deletePoll(pollId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Poll deleted successfully"));
+        } catch (Exception e) {
+            System.err.println("❌ Delete error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

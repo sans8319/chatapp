@@ -79,4 +79,35 @@ public class PollService {
         messagingTemplate.convertAndSend("/topic/public/updates", Map.of("type", "VOTE_SUBMITTED"));
         return saved;
     }
+
+    @Transactional
+     public void deletePoll(Long pollId) {
+        // Check if poll exists
+        Poll poll = pollRepository.findById(pollId)
+            .orElseThrow(() -> new RuntimeException("Poll not found with id: " + pollId));
+        
+        try {
+            // ✅ Step 1: Delete all poll responses (votes) first
+            responseRepository.deleteByPollId(pollId);
+            
+            // ✅ Step 2: Clear options (if needed)
+            if (poll.getOptions() != null) {
+                poll.getOptions().clear();
+            }
+            
+            // ✅ Step 3: Delete the poll
+            pollRepository.delete(poll);
+            
+            // ✅ Step 4: Send real-time notification
+            messagingTemplate.convertAndSend("/topic/public/updates", 
+                Map.of("type", "POLL_DELETED", "pollId", pollId));
+                
+            System.out.println("✅ Poll deleted successfully: " + pollId);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error deleting poll: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to delete poll: " + e.getMessage());
+        }
+    }
 }
