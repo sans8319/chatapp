@@ -13,10 +13,13 @@ public class JwtProvider {
     private final SecretKey key = Keys.hmacShaKeyFor("your-very-secure-secret-key-that-is-at-least-32-chars".getBytes());
 
     public String generateToken(Authentication auth) {
+        
+        long ONE_YEAR = 1000L * 60 * 60 * 24 * 365; 
+
         return Jwts.builder()
                 .setSubject(auth.getName())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + 86400000)) // 24 Hours
+                .setExpiration(new Date(new Date().getTime() + ONE_YEAR)) // 1 Saal ki validity
                 .signWith(key)
                 .compact();
     }

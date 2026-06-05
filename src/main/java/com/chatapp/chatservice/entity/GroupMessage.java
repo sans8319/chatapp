@@ -9,7 +9,7 @@ public class GroupMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(columnDefinition = "TEXT")
     private String content;
     private Long senderId;
     private String senderName; 
